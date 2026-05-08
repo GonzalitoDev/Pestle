@@ -1,0 +1,26 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@layer base {
+  * {
+    @apply border-[#141414]/10;
+  }
+}
+
+/* Custom Syntax Highlighter Overrides */
+pre[class*="language-"] {
+  border: none !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+}
+
+code[class*="language-"] {
+  text-shadow: none !important;
+}
+
