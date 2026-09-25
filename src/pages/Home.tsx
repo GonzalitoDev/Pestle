@@ -1,9 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Send, FileCode, Clock, Lock, ShieldCheck } from 'lucide-react';
-import { auth } from '../lib/firebase';
 import { pasteService } from '../lib/pasteService';
-import { LANGUAGES, Language } from '../types';
+import { EXPIRIES, Expiry, LANGUAGES, Language } from '../types';
 import { cn } from '../lib/utils';
 
 export default function Home() {
@@ -11,6 +10,7 @@ export default function Home() {
   const [title, setTitle] = useState('');
   const [language, setLanguage] = useState<Language>('javascript');
   const [isPublic, setIsPublic] = useState(true);
+  const [expiresIn, setExpiresIn] = useState<Expiry>('never');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -23,13 +23,12 @@ export default function Home() {
         content,
         language,
         isPublic,
-        createdAt: Date.now(),
-        userId: auth.currentUser?.uid
+        expiresIn,
       });
       navigate(`/paste/${pasteId}`);
     } catch (err) {
       console.error(err);
-      alert("Failed to publish paste.");
+      alert(`Failed to publish paste: ${err instanceof Error ? err.message : err}`);
     } finally {
       setLoading(false);
     }
@@ -92,6 +91,22 @@ export default function Home() {
               </div>
 
               <div className="space-y-1.5">
+                <label className="text-[10px] font-mono uppercase opacity-50">EXPIRATION</label>
+                <div className="relative group">
+                  <select
+                    className="w-full bg-white border border-[#141414] px-3 py-2 text-xs font-mono appearance-none outline-none focus:ring-1 focus:ring-black cursor-pointer"
+                    value={expiresIn}
+                    onChange={(e) => setExpiresIn(e.target.value as Expiry)}
+                  >
+                    {EXPIRIES.map(exp => (
+                      <option key={exp.value} value={exp.value}>{exp.label.toUpperCase()}</option>
+                    ))}
+                  </select>
+                  <Clock size={14} className="absolute right-3 top-2.5 pointer-events-none opacity-40 group-hover:opacity-100 transition-opacity" />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
                 <label className="text-[10px] font-mono uppercase opacity-50">VISIBILITY</label>
                 <div className="flex gap-2">
                   <button 
@@ -139,7 +154,7 @@ export default function Home() {
             </div>
             <div className="flex gap-2">
               <Clock size={14} className="shrink-0" />
-              <p>Volatile storage: data remains active unless purged by garbage collection protocols.</p>
+              <p>Volatile storage: data remains active until its expiration window closes or it is purged by its operator.</p>
             </div>
           </section>
         </div>

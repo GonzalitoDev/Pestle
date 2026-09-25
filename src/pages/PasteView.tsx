@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Calendar, User, Code2, Copy, Check, Download, Share2 } from 'lucide-react';
-import { pasteService } from '../lib/pasteService';
+import { Calendar, User, Code2, Copy, Check, Download, Share2, Trash2, FileText, Timer } from 'lucide-react';
+import { pasteService, resolveBackend } from '../lib/pasteService';
 import { Paste } from '../types';
 import { formatDate } from '../lib/utils';
 
@@ -12,15 +12,28 @@ export default function PasteView() {
   const [paste, setPaste] = useState<Paste | null>(null);
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
+  const [isMock, setIsMock] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
+    resolveBackend().then(b => setIsMock(b.isMock));
     if (id) {
-      pasteService.getPaste(id).then(res => {
-        setPaste(res);
-        setLoading(false);
-      });
+      pasteService.getPaste(id)
+        .then(setPaste)
+        .catch(() => setPaste(null))
+        .finally(() => setLoading(false));
     }
   }, [id]);
+
+  const deletePaste = async () => {
+    if (!paste || !confirm('Purge this paste permanently?')) return;
+    try {
+      await pasteService.deletePaste(paste.id);
+      navigate('/dashboard');
+    } catch (err) {
+      alert(`Failed to delete paste: ${err instanceof Error ? err.message : err}`);
+    }
+  };
 
   const copyToClipboard = () => {
     if (paste) {
@@ -85,12 +98,35 @@ export default function PasteView() {
           </h1>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[10px] font-mono opacity-50 uppercase tracking-widest">
             <div className="flex items-center gap-1.5"><Calendar size={12} /> {formatDate(paste.createdAt)}</div>
-            <div className="flex items-center gap-1.5"><User size={12} /> {paste.userId ? `OPERATOR_${paste.userId.substring(0, 5)}` : 'ANONYMOUS_SIGNAL'}</div>
+            <div className="flex items-center gap-1.5"><User size={12} /> {paste.isOwner ? 'YOU' : paste.author ? `OPERATOR_${paste.author.substring(0, 5).toUpperCase()}` : 'ANONYMOUS_SIGNAL'}</div>
             <div className="flex items-center gap-1.5"><Code2 size={12} /> {paste.content.split('\n').length} LINES</div>
+            {paste.expiresAt && (
+              <div className="flex items-center gap-1.5"><Timer size={12} /> EXPIRES {formatDate(paste.expiresAt)}</div>
+            )}
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {!isMock && (
+            <a
+              href={`/api/pastes/${paste.id}?raw=1`}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-2 px-4 py-2 border border-[#141414] bg-white text-[10px] font-mono font-bold uppercase tracking-widest hover:bg-[#141414] hover:text-[#E4E3E0] transition-all active:scale-95"
+            >
+              <FileText size={14} />
+              RAW
+            </a>
+          )}
+          {paste.isOwner && (
+            <button
+              onClick={deletePaste}
+              className="flex items-center gap-2 px-4 py-2 border border-red-700 bg-white text-red-700 text-[10px] font-mono font-bold uppercase tracking-widest hover:bg-red-700 hover:text-white transition-all active:scale-95"
+            >
+              <Trash2 size={14} />
+              PURGE
+            </button>
+          )}
           <button 
             onClick={copyToClipboard}
             className="flex items-center gap-2 px-4 py-2 border border-[#141414] bg-white text-[10px] font-mono font-bold uppercase tracking-widest hover:bg-[#141414] hover:text-[#E4E3E0] transition-all active:scale-95"
@@ -139,7 +175,7 @@ export default function PasteView() {
         <div className="text-right flex flex-col justify-center opacity-30 text-[9px] font-mono uppercase tracking-[0.3em] leading-loose">
           <p>DATA_INTEGRITY: VERIFIED</p>
           <p>TRANSPORT_PROTOCOL: ENCRYPTED</p>
-          <p>TTL: INDEFINITE</p>
+          <p>TTL: {paste.expiresAt ? formatDate(paste.expiresAt).toUpperCase() : 'INDEFINITE'}</p>
         </div>
       </div>
     </div>
