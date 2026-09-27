@@ -12,14 +12,6 @@ A fast pastebin for sharing code snippets with syntax highlighting, ready to dep
 - Optional expiration (1 hour / 1 day / 1 week) enforced with Redis TTLs
 - Raw endpoint `GET /api/pastes/:id?raw=1` and full API docs at `/api-docs`
 
-## Deploy to Vercel
-
-1. Import this repository at <https://vercel.com/new> (the framework is detected as **Vite**; `vercel.json` sets everything else up).
-2. In the project, open **Storage → Create Database → Upstash for Redis** and connect it to the project.
-   This injects `KV_REST_API_URL` and `KV_REST_API_TOKEN`.
-3. Redeploy. Done.
-
-If no database is connected the app still works in **mock mode**: pastes are saved only in the visitor's browser (localStorage) and a banner warns about it.
 
 ## Run locally
 
