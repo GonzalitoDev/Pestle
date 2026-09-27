@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Send, Play, Globe, Link2, Sparkles, Wand2 } from 'lucide-react';
+import { Send, Play, Globe, Link2, Sparkles, Wand2, Smartphone, Download } from 'lucide-react';
 import { pasteService } from '../lib/pasteService';
 import { EXPIRIES, Expiry, LANGUAGES, Language } from '../types';
 import { isRunnable } from '../data/snippets';
 import { detectLanguage } from '../lib/detectLanguage';
 import CodeRunner from '../components/CodeRunner';
-import { Button, Card, Field, Kbd, Segmented, Select } from '../components/ui';
+import { Button, Card, Field, Kbd, Segmented, Select, buttonClass } from '../components/ui';
 import { useToast } from '../components/Toast';
+import { APK_URL, isNative } from '../lib/platform';
 
 interface PrefillState {
   title?: string;
@@ -199,6 +200,24 @@ export default function Home() {
               Publish paste
             </Button>
           </Card>
+
+          {!isNative && (
+            <Card className="p-4 space-y-3">
+              <div className="flex gap-3">
+                <div className="grid size-9 shrink-0 place-items-center rounded-lg bg-success-soft">
+                  <Smartphone className="size-5 text-success" aria-hidden />
+                </div>
+                <div className="text-sm">
+                  <p className="font-medium">Pestle for Android</p>
+                  <p className="text-muted">Editor, library and runner on your phone. Works offline too.</p>
+                </div>
+              </div>
+              <a href={APK_URL} rel="noopener" className={buttonClass('success', 'md', 'w-full')}>
+                <Download className="size-4" aria-hidden /> Download APK
+              </a>
+              <p className="text-xs text-muted">Android 7 or newer. When Android asks, allow installing from this source.</p>
+            </Card>
+          )}
 
           <div className="flex gap-3 rounded-xl border border-line p-4 text-sm text-muted">
             <Sparkles className="size-4 shrink-0 text-accent mt-0.5" aria-hidden />

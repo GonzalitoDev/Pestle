@@ -16,3 +16,10 @@ export const PUBLIC_URL = (import.meta.env.VITE_PUBLIC_URL || API_BASE || '').re
 export function shareUrl(path: string) {
   return isNative && PUBLIC_URL ? PUBLIC_URL + path : window.location.origin + path;
 }
+
+/**
+ * Latest Android build, published by .github/workflows/android.yml as a GitHub Release asset.
+ * Override with VITE_APK_URL (e.g. to host the APK elsewhere).
+ */
+export const APK_URL =
+  import.meta.env.VITE_APK_URL || 'https://github.com/GonzalitoDev/pestesting/releases/latest/download/Pestle.apk';
