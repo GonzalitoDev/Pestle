@@ -1,56 +1,119 @@
-import { collection, addDoc, getDoc, doc, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
-import { db, IS_MOCK_MODE } from './firebase';
-import { Paste } from '../types';
+import { NewPaste, Paste } from '../types';
 
 const LOCAL_STORAGE_KEY = 'pestle_mock_pastes';
+const OWNER_ID_KEY = 'pestle_owner_id';
+
+/** Anonymous, per-browser identity used to list and delete your own pastes. */
+export function getOwnerId() {
+  let id = localStorage.getItem(OWNER_ID_KEY);
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem(OWNER_ID_KEY, id);
+  }
+  return id;
+}
+
+const EXPIRY_MS: Record<NewPaste['expiresIn'], number | null> = {
+  never: null,
+  '1h': 60 * 60 * 1000,
+  '1d': 24 * 60 * 60 * 1000,
+  '1w': 7 * 24 * 60 * 60 * 1000,
+};
+
+interface PasteBackend {
+  addPaste(paste: NewPaste): Promise<string>;
+  getPaste(id: string): Promise<Paste | null>;
+  getMyPastes(): Promise<Paste[]>;
+  getPublicPastes(): Promise<Paste[]>;
+  deletePaste(id: string): Promise<void>;
+}
 
 /**
- * Mock implementation using LocalStorage
+ * Fallback implementation using LocalStorage, used when the /api functions are
+ * unavailable (plain `vite` dev server) or no Redis database is connected.
  */
-const mockDb = {
-  async addPaste(paste: Omit<Paste, 'id'>): Promise<string> {
-    const pastes = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
+const localDb: PasteBackend = {
+  async addPaste({ expiresIn, ...paste }) {
+    const pastes: Paste[] = readLocal();
     const id = Math.random().toString(36).substring(2, 11);
-    const newPaste = { ...paste, id };
-    pastes.push(newPaste);
+    const createdAt = Date.now();
+    const ttl = EXPIRY_MS[expiresIn];
+    pastes.push({ ...paste, id, createdAt, expiresAt: ttl ? createdAt + ttl : undefined, isOwner: true });
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(pastes));
     return id;
   },
-  async getPaste(id: string): Promise<Paste | null> {
-    const pastes = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
-    return pastes.find((p: Paste) => p.id === id) || null;
+  async getPaste(id) {
+    return readLocal().find((p) => p.id === id) || null;
   },
-  async getUserPastes(userId: string): Promise<Paste[]> {
-    const pastes = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
-    return pastes.filter((p: Paste) => p.userId === userId).sort((a: Paste, b: Paste) => b.createdAt - a.createdAt);
-  }
+  async getMyPastes() {
+    return readLocal().sort((a, b) => b.createdAt - a.createdAt);
+  },
+  async getPublicPastes() {
+    return readLocal()
+      .filter((p) => p.isPublic)
+      .sort((a, b) => b.createdAt - a.createdAt);
+  },
+  async deletePaste(id) {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(readLocal().filter((p) => p.id !== id)));
+  },
 };
 
-/**
- * Real Firebase implementation
- */
-const firebaseDb = {
-  async addPaste(paste: Omit<Paste, 'id'>): Promise<string> {
-    const docRef = await addDoc(collection(db, 'pastes'), paste);
-    return docRef.id;
-  },
-  async getPaste(id: string): Promise<Paste | null> {
-    const docSnap = await getDoc(doc(db, 'pastes', id));
-    if (docSnap.exists()) {
-      return { id: docSnap.id, ...docSnap.data() } as Paste;
-    }
-    return null;
-  },
-  async getUserPastes(userId: string): Promise<Paste[]> {
-    const q = query(
-      collection(db, 'pastes'),
-      where('userId', '==', userId),
-      orderBy('createdAt', 'desc'),
-      limit(50)
-    );
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Paste));
+function readLocal(): Paste[] {
+  const now = Date.now();
+  const pastes: Paste[] = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
+  return pastes.filter((p) => !p.expiresAt || p.expiresAt > now);
+}
+
+/** Vercel Functions backed by Upstash Redis (see /api). */
+async function api(path: string, init: RequestInit = {}) {
+  const res = await fetch(`/api${path}`, {
+    ...init,
+    headers: { 'content-type': 'application/json', 'x-owner-id': getOwnerId(), ...init.headers },
+  });
+  if (!res.ok && res.status !== 404) {
+    const { error } = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(error);
   }
+  return res;
+}
+
+const remoteDb: PasteBackend = {
+  async addPaste(paste) {
+    const res = await api('/pastes', { method: 'POST', body: JSON.stringify(paste) });
+    return (await res.json()).id;
+  },
+  async getPaste(id) {
+    const res = await api(`/pastes/${encodeURIComponent(id)}`);
+    return res.status === 404 ? null : res.json();
+  },
+  async getMyPastes() {
+    const res = await api('/pastes');
+    return (await res.json()).pastes;
+  },
+  async getPublicPastes() {
+    const res = await api('/pastes?scope=public');
+    return (await res.json()).pastes;
+  },
+  async deletePaste(id) {
+    await api(`/pastes/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  },
 };
 
-export const pasteService = IS_MOCK_MODE ? mockDb : firebaseDb;
+let backendPromise: Promise<{ backend: PasteBackend; isMock: boolean }> | null = null;
+
+/** Probe /api/health once to decide between the real backend and the LocalStorage fallback. */
+export function resolveBackend() {
+  backendPromise ??= fetch('/api/health')
+    .then((res) => res.json())
+    .then((health) => (health.storage ? { backend: remoteDb, isMock: false } : { backend: localDb, isMock: true }))
+    .catch(() => ({ backend: localDb, isMock: true }));
+  return backendPromise;
+}
+
+export const pasteService: PasteBackend = {
+  addPaste: async (paste) => (await resolveBackend()).backend.addPaste(paste),
+  getPaste: async (id) => (await resolveBackend()).backend.getPaste(id),
+  getMyPastes: async () => (await resolveBackend()).backend.getMyPastes(),
+  getPublicPastes: async () => (await resolveBackend()).backend.getPublicPastes(),
+  deletePaste: async (id) => (await resolveBackend()).backend.deletePaste(id),
+};

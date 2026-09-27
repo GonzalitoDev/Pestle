@@ -1,30 +1,21 @@
 import { useEffect, useState } from 'react';
-import { User as FirebaseUser } from 'firebase/auth';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { FileCode, Clock, Eye, Lock, Terminal, ShieldAlert } from 'lucide-react';
-import { pasteService } from '../lib/pasteService';
+import { getOwnerId, pasteService } from '../lib/pasteService';
 import { Paste } from '../types';
 import { formatDate } from '../lib/utils';
 
-interface DashboardProps {
-  user: FirebaseUser | null;
-}
-
-export default function Dashboard({ user }: DashboardProps) {
+export default function Dashboard() {
   const [pastes, setPastes] = useState<Paste[]>([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user) {
-      pasteService.getUserPastes(user.uid).then(res => {
-        setPastes(res);
-        setLoading(false);
-      });
-    } else {
-      setLoading(false);
-    }
-  }, [user]);
+    pasteService.getMyPastes()
+      .then(setPastes)
+      .catch(err => setError(err instanceof Error ? err.message : String(err)))
+      .finally(() => setLoading(false));
+  }, []);
 
   if (loading) {
     return (
@@ -39,16 +30,16 @@ export default function Dashboard({ user }: DashboardProps) {
     );
   }
 
-  if (!user) {
+  if (error) {
     return (
       <div className="h-[60vh] flex flex-col items-center justify-center gap-6">
         <ShieldAlert size={64} strokeWidth={1} className="opacity-20" />
         <div className="text-center space-y-2">
-          <h2 className="font-mono text-xl font-bold uppercase tracking-tight">ACCESS_DENIED</h2>
-          <p className="font-mono text-xs opacity-40 uppercase tracking-widest">Authentication required for vault access.</p>
+          <h2 className="font-mono text-xl font-bold uppercase tracking-tight">VAULT_UNREACHABLE</h2>
+          <p className="font-mono text-xs opacity-40 uppercase tracking-widest">Storage backend returned an error.</p>
         </div>
         <p className="text-[10px] font-mono max-w-xs text-center opacity-40 uppercase leading-relaxed">
-          Please authenticate with your operator credentials to view your stored data signatures.
+          {error}
         </p>
       </div>
     );
@@ -58,7 +49,7 @@ export default function Dashboard({ user }: DashboardProps) {
     <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-700">
       <header className="flex flex-col gap-2">
         <h1 className="text-3xl font-mono font-bold tracking-tighter uppercase underline decoration-[#141414]/20 underline-offset-8 decoration-4">MY_SIGNAL_VAULT</h1>
-        <p className="text-[10px] font-mono uppercase tracking-[0.2em] opacity-40">Stored historical data assets for user_{user.uid.substring(0, 8)}</p>
+        <p className="text-[10px] font-mono uppercase tracking-[0.2em] opacity-40">Stored historical data assets for operator_{getOwnerId().substring(0, 8)}</p>
       </header>
 
       {pastes.length === 0 ? (
