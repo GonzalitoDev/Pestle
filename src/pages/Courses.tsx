@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, BookOpen, CheckCircle2, GraduationCap, Play } from 'lucide-react';
+import { ArrowRight, Award, BookOpen, CheckCircle2, GraduationCap, Lock, Play, Sparkles } from 'lucide-react';
 import { COURSES } from '../data/courses';
 import { useCompleted } from '../lib/courseProgress';
 import { Badge, Card, PageHeader, buttonClass } from '../components/ui';
@@ -21,13 +21,22 @@ export default function Courses() {
           const total = course.lessons.length;
           const next = course.lessons.find((l) => !done.has(`${course.id}/${l.id}`)) ?? course.lessons[0];
           const pct = Math.round((completed / total) * 100);
+          const projectDone = done.has(`${course.id}/proyecto`);
+          const projectUnlocked = completed === total;
           return (
             <Card key={course.id} className="flex flex-col p-6">
               <div className="flex items-start justify-between gap-3">
                 <div className="grid size-11 place-items-center rounded-xl bg-accent-soft">
                   <BookOpen className="size-5 text-accent" aria-hidden />
                 </div>
-                <Badge tone={course.level === 'Principiante' ? 'success' : 'accent'}>{course.level}</Badge>
+                <div className="flex gap-1.5">
+                  {projectDone && (
+                    <Badge tone="success">
+                      <Award className="size-3" /> Completado
+                    </Badge>
+                  )}
+                  <Badge tone={course.level === 'Principiante' ? 'success' : 'accent'}>{course.level}</Badge>
+                </div>
               </div>
               <h2 className="mt-4 text-xl font-semibold tracking-tight">{course.title}</h2>
               <p className="mt-1 flex-1 text-sm text-muted">{course.description}</p>
@@ -51,8 +60,15 @@ export default function Courses() {
                 </div>
               </div>
 
-              <Link to={`/cursos/${course.id}/${next.id}`} className={buttonClass(completed ? 'secondary' : 'primary', 'md', 'mt-5')}>
-                {completed === total ? (
+              <Link
+                to={projectUnlocked && !projectDone ? `/cursos/${course.id}/proyecto` : `/cursos/${course.id}/${next.id}`}
+                className={buttonClass(completed && !(projectUnlocked && !projectDone) ? 'secondary' : 'primary', 'md', 'mt-5')}
+              >
+                {projectUnlocked && !projectDone ? (
+                  <>
+                    <Sparkles className="size-4" aria-hidden /> Hacer el proyecto final
+                  </>
+                ) : completed === total ? (
                   <>
                     <CheckCircle2 className="size-4 text-success" aria-hidden /> Repasar
                   </>
@@ -85,6 +101,21 @@ export default function Courses() {
                       </Link>
                     </li>
                   ))}
+                  <li>
+                    <Link
+                      to={`/cursos/${course.id}/proyecto`}
+                      className="flex items-center gap-2 rounded-md px-2 py-1 font-medium hover:bg-surface-2"
+                    >
+                      {projectDone ? (
+                        <CheckCircle2 className="size-4 shrink-0 text-success" aria-label="Completado" />
+                      ) : projectUnlocked ? (
+                        <Sparkles className="size-4 shrink-0 text-accent" aria-hidden />
+                      ) : (
+                        <Lock className="size-4 shrink-0 text-muted" aria-label="Bloqueado" />
+                      )}
+                      Proyecto final: {course.project.title}
+                    </Link>
+                  </li>
                 </ol>
               </details>
             </Card>

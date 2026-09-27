@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, CheckCircle2, ChevronRight, Eye, Lightbulb, ListChecks, Play, RotateCcw } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle2, ChevronRight, Eye, Lightbulb, ListChecks, Play, RotateCcw, Sparkles } from 'lucide-react';
 import { COURSES, findLesson } from '../data/courses';
 import { loadCode, markDone, saveCode, useCompleted } from '../lib/courseProgress';
 import { PASS_MARKER, buildCheckProgram, buildRunProgram } from '../lib/pythonCheck';
@@ -58,7 +58,7 @@ function LessonView({ courseId, index }: { courseId: string; index: number }) {
       setResult('pass');
       if (!isDone) {
         markDone(course.id, lesson.id);
-        toast(next ? '¡Lección completada! Seguí con la próxima.' : '¡Terminaste el curso! 🎉');
+        toast(next ? '¡Lección completada! Seguí con la próxima.' : '¡Terminaste todas las lecciones! Ahora, el proyecto final 🎉');
       }
     } else if (line.text.startsWith('❌') || line.type === 'error') {
       setResult((r) => r ?? 'fail');
@@ -146,6 +146,19 @@ function LessonView({ courseId, index }: { courseId: string; index: number }) {
                   </Link>
                 </li>
               ))}
+              <li>
+                <Link
+                  to={`/cursos/${course.id}/proyecto`}
+                  className="flex items-center gap-2 rounded-md px-2 py-1.5 font-medium hover:bg-surface-2"
+                >
+                  {done.has(`${course.id}/proyecto`) ? (
+                    <CheckCircle2 className="size-4 shrink-0 text-success" aria-label="Completado" />
+                  ) : (
+                    <Sparkles className="size-4 shrink-0 text-accent" aria-hidden />
+                  )}
+                  Proyecto final: {course.project.title}
+                </Link>
+              </li>
             </ol>
           </details>
         </article>
@@ -214,8 +227,8 @@ function LessonView({ courseId, index }: { courseId: string; index: number }) {
                   Siguiente lección <ArrowRight className="size-4" aria-hidden />
                 </Link>
               ) : (
-                <Link to="/cursos" className={buttonClass('success', 'sm')}>
-                  Ver cursos <ArrowRight className="size-4" aria-hidden />
+                <Link to={`/cursos/${course.id}/proyecto`} className={buttonClass('success', 'sm')}>
+                  Ir al proyecto final <ArrowRight className="size-4" aria-hidden />
                 </Link>
               )}
             </div>
@@ -261,8 +274,8 @@ function LessonView({ courseId, index }: { courseId: string; index: number }) {
             <span className="truncate">{next.title}</span> <ArrowRight className="size-4" aria-hidden />
           </Link>
         ) : (
-          <Link to="/cursos" className={buttonClass('secondary')}>
-            Volver a los cursos <ArrowRight className="size-4" aria-hidden />
+          <Link to={`/cursos/${course.id}/proyecto`} className={buttonClass('secondary')}>
+            Proyecto final <ArrowRight className="size-4" aria-hidden />
           </Link>
         )}
       </div>

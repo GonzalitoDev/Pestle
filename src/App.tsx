@@ -22,6 +22,7 @@ const Codes = lazy(() => import('./pages/Codes'));
 const Explore = lazy(() => import('./pages/Explore'));
 const Courses = lazy(() => import('./pages/Courses'));
 const Lesson = lazy(() => import('./pages/Lesson'));
+const Project = lazy(() => import('./pages/Project'));
 const Privacy = lazy(() => import('./pages/Info').then((m) => ({ default: m.Privacy })));
 const Terms = lazy(() => import('./pages/Info').then((m) => ({ default: m.Terms })));
 const ApiDocs = lazy(() => import('./pages/Info').then((m) => ({ default: m.ApiDocs })));
@@ -196,6 +197,7 @@ export default function App() {
               <Route path="/explore" element={<Explore />} />
               <Route path="/cursos" element={<Courses />} />
               <Route path="/cursos/:courseId" element={<Lesson />} />
+              <Route path="/cursos/:courseId/proyecto" element={<Project />} />
               <Route path="/cursos/:courseId/:lessonId" element={<Lesson />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
