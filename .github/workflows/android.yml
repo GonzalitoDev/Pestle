@@ -19,7 +19,7 @@ jobs:
     timeout-minutes: 30
     env:
       # Backend the app talks to. Set the PESTLE_API_URL repository variable to override.
-      VITE_API_BASE: ${{ vars.PESTLE_API_URL || 'https://pestle-app.vercel.app' }}
+      VITE_API_BASE: ${{ vars.PESTLE_API_URL || 'https://pestesting.vercel.app' }}
       PESTLE_VERSION_CODE: ${{ github.run_number }}
       PESTLE_VERSION_NAME: 1.0.${{ github.run_number }}
     steps:

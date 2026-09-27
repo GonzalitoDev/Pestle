@@ -18,7 +18,7 @@ A fast pastebin for sharing code snippets with syntax highlighting, ready to dep
 ## Android app (APK)
 
 The `android/` folder is a [Capacitor](https://capacitorjs.com) app that bundles the whole UI (editor, library, code
-runner). It talks to the deployed site's API (`VITE_API_BASE`, default `https://pestle-app.vercel.app`); with no
+runner). It talks to the deployed site's API (`VITE_API_BASE`, default `https://pestesting.vercel.app`); with no
 connection, or if the site is unreachable, it works offline and keeps pastes on the phone.
 
 **Download:** every push builds the APK with GitHub Actions (`.github/workflows/android.yml`) and publishes it under
