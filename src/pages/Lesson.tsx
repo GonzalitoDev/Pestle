@@ -2,13 +2,14 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, Navigate, useParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, CheckCircle2, ChevronRight, Eye, Lightbulb, ListChecks, Play, RotateCcw, Sparkles } from 'lucide-react';
 import { COURSES, findLesson } from '../data/courses';
-import { loadCode, markDone, saveCode, useCompleted } from '../lib/courseProgress';
+import { markDone, setLastVisited, startProgressSync, useCompleted, useLessonCode } from '../lib/courseProgress';
 import { PASS_MARKER, buildCheckProgram, buildRunProgram } from '../lib/pythonCheck';
 import CodeRunner, { LogLine } from '../components/CodeRunner';
 import CodeBlock from '../components/CodeBlock';
 import Prose from '../components/Prose';
-import { Badge, Button, Card, Kbd, buttonClass } from '../components/ui';
+import { Badge, Button, Card, buttonClass } from '../components/ui';
 import { useToast } from '../components/Toast';
+import SaveStatus from '../components/SaveStatus';
 import { cn } from '../lib/utils';
 
 type RunMode = 'run' | 'check';
@@ -33,13 +34,16 @@ function LessonView({ courseId, index }: { courseId: string; index: number }) {
   const isDone = done.has(`${course.id}/${lesson.id}`);
   const completedCount = course.lessons.filter((l) => done.has(`${course.id}/${l.id}`)).length;
 
-  const [code, setCode] = useState(() => loadCode(course.id, lesson.id) ?? lesson.starter);
+  const [code, setCode] = useLessonCode(course.id, lesson.id, lesson.starter);
   const [run, setRun] = useState<{ mode: RunMode; id: number; program: string } | null>(null);
   const [result, setResult] = useState<'pass' | 'fail' | null>(null);
   const [showSolution, setShowSolution] = useState(false);
   const passedRef = useRef(false);
 
-  useEffect(() => saveCode(course.id, lesson.id, code), [code, course.id, lesson.id]);
+  useEffect(() => {
+    startProgressSync();
+    setLastVisited(`/cursos/${course.id}/${lesson.id}`);
+  }, [course.id, lesson.id]);
 
   const execute = (mode: RunMode) => {
     passedRef.current = false;
@@ -211,8 +215,8 @@ function LessonView({ courseId, index }: { courseId: string; index: number }) {
               >
                 Reiniciar
               </Button>
-              <span className="ml-auto hidden items-center gap-1 text-xs text-muted xl:flex">
-                <Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> comprobar
+              <span className="ml-auto">
+                <SaveStatus />
               </span>
             </div>
           </Card>

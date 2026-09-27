@@ -34,6 +34,14 @@ export function Privacy() {
         </p>
       </section>
       <section>
+        <h2>Course progress</h2>
+        <p>
+          If you use the Python courses, the lessons you completed, the code you wrote in each exercise and the last lesson
+          you opened are saved in your browser and on the server under your anonymous identifier (stored hashed), so you
+          don't lose them when you close the page or switch devices. It is kept for one year after your last change.
+        </p>
+      </section>
+      <section>
         <h2>Abuse protection</h2>
         <p>
           To stop spam, the API counts requests per IP address. The IP is never stored as-is: only a keyed hash is kept,
