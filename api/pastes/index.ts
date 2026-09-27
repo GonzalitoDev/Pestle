@@ -3,6 +3,8 @@ import {
   LANGUAGES,
   MAX_CONTENT_BYTES,
   MAX_TITLE_LENGTH,
+  PUBLIC_FEED_KEY,
+  PUBLIC_FEED_SIZE,
   StoredPaste,
   generateId,
   json,
@@ -14,21 +16,36 @@ import {
   toPublic,
 } from '../_lib/store.js';
 
-/** List the caller's own pastes (identified by the x-owner-id header). */
+const PREVIEW_CHARS = 600;
+
+/**
+ * List pastes.
+ * - `?scope=public`: the most recent public pastes (content truncated to a preview).
+ * - default: the caller's own pastes (identified by the x-owner-id header).
+ */
 export async function GET(request: Request) {
   if (!redis) return storageUnavailable();
   const ownerHash = await ownerHashFrom(request);
-  if (!ownerHash) return json({ error: 'Missing x-owner-id header' }, 400);
+  const isPublicFeed = new URL(request.url).searchParams.get('scope') === 'public';
+  if (!isPublicFeed && !ownerHash) return json({ error: 'Missing x-owner-id header' }, 400);
 
-  const ids = await redis.zrange<string[]>(ownerKey(ownerHash), 0, 49, { rev: true });
+  const listKey = isPublicFeed ? PUBLIC_FEED_KEY : ownerKey(ownerHash!);
+  const ids = await redis.zrange<string[]>(listKey, 0, 49, { rev: true });
   if (ids.length === 0) return json({ pastes: [] });
 
   const pastes = await redis.mget<(StoredPaste | null)[]>(...ids.map(pasteKey));
   const expired = ids.filter((_, i) => !pastes[i]);
-  if (expired.length) await redis.zrem(ownerKey(ownerHash), ...expired);
+  if (expired.length) await redis.zrem(listKey, ...expired);
 
   return json({
-    pastes: pastes.filter((p): p is StoredPaste => Boolean(p)).map((p) => toPublic(p, ownerHash)),
+    pastes: pastes
+      .filter((p): p is StoredPaste => Boolean(p))
+      .map((p) => toPublic(p, ownerHash))
+      .map((p) =>
+        isPublicFeed && p.content.length > PREVIEW_CHARS
+          ? { ...p, content: p.content.slice(0, PREVIEW_CHARS), truncated: true }
+          : p
+      ),
   });
 }
 
@@ -69,6 +86,10 @@ export async function POST(request: Request) {
   const tx = redis.multi();
   tx.set(pasteKey(paste.id), paste, ttl ? { ex: ttl } : undefined);
   if (ownerHash) tx.zadd(ownerKey(ownerHash), { score: now, member: paste.id });
+  if (paste.isPublic) {
+    tx.zadd(PUBLIC_FEED_KEY, { score: now, member: paste.id });
+    tx.zremrangebyrank(PUBLIC_FEED_KEY, 0, -(PUBLIC_FEED_SIZE + 1));
+  }
   await tx.exec();
 
   return json(toPublic(paste, ownerHash), 201);

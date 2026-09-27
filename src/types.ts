@@ -10,6 +10,7 @@ export interface Paste {
   createdAt: number; // timestamp
   expiresAt?: number;
   isPublic: boolean;
+  truncated?: boolean; // feed previews only carry the first few hundred characters
 }
 
 export type Expiry = 'never' | '1h' | '1d' | '1w';

@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Calendar, User, Code2, Copy, Check, Download, Share2, Trash2, FileText, Timer } from 'lucide-react';
+import { Calendar, User, Code2, Copy, Check, Download, Share2, Trash2, FileText, Timer, Play, GitFork, Link2 } from 'lucide-react';
 import { pasteService, resolveBackend } from '../lib/pasteService';
 import { Paste } from '../types';
-import { formatDate } from '../lib/utils';
+import { downloadText, formatDate } from '../lib/utils';
+import { isRunnable } from '../data/snippets';
+import CodeRunner from '../components/CodeRunner';
 
 export default function PasteView() {
   const { id } = useParams<{ id: string }>();
@@ -13,6 +15,8 @@ export default function PasteView() {
   const [loading, setLoading] = useState(true);
   const [copied, setCopied] = useState(false);
   const [isMock, setIsMock] = useState(true);
+  const [running, setRunning] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -44,16 +48,20 @@ export default function PasteView() {
   };
 
   const downloadPaste = () => {
+    if (paste) downloadText(paste.content, paste.title || `paste-${paste.id}`, paste.language);
+  };
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(window.location.href);
+    setLinkCopied(true);
+    setTimeout(() => setLinkCopied(false), 2000);
+  };
+
+  const forkPaste = () => {
     if (paste) {
-      const blob = new Blob([paste.content], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${paste.title || 'snippet'}.${paste.language}`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      navigate('/', {
+        state: { title: paste.title ? `${paste.title} (fork)` : undefined, content: paste.content, language: paste.language },
+      });
     }
   };
 
@@ -107,6 +115,22 @@ export default function PasteView() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {isRunnable(paste.language) && (
+            <button
+              onClick={() => setRunning(r => !r)}
+              className="flex items-center gap-2 px-4 py-2 border border-[#141414] bg-green-100 text-[10px] font-mono font-bold uppercase tracking-widest hover:bg-[#141414] hover:text-[#E4E3E0] transition-all active:scale-95"
+            >
+              <Play size={14} />
+              {running ? 'HIDE_RUN' : 'RUN'}
+            </button>
+          )}
+          <button
+            onClick={forkPaste}
+            className="flex items-center gap-2 px-4 py-2 border border-[#141414] bg-white text-[10px] font-mono font-bold uppercase tracking-widest hover:bg-[#141414] hover:text-[#E4E3E0] transition-all active:scale-95"
+          >
+            <GitFork size={14} />
+            FORK
+          </button>
           {!isMock && (
             <a
               href={`/api/pastes/${paste.id}?raw=1`}
@@ -163,14 +187,26 @@ export default function PasteView() {
         </SyntaxHighlighter>
       </div>
 
+      {running && (
+        <CodeRunner code={paste.content} language={paste.language} onClose={() => setRunning(false)} />
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
         <div className="border-l-2 border-[#141414] pl-6 py-2 space-y-2">
           <p className="text-[10px] font-mono font-bold uppercase tracking-widest opacity-60 flex items-center gap-2">
             <Share2 size={12} /> ACCESS_URL
           </p>
-          <code className="text-xs font-mono bg-white p-2 border border-[#141414]/10 block truncate">
-            {window.location.href}
-          </code>
+          <div className="flex">
+            <code className="flex-1 text-xs font-mono bg-white p-2 border border-[#141414]/10 block truncate">
+              {window.location.href}
+            </code>
+            <button
+              onClick={copyLink}
+              className="px-3 border border-[#141414] bg-[#141414] text-[#E4E3E0] text-[10px] font-mono uppercase flex items-center gap-1"
+            >
+              {linkCopied ? <Check size={12} /> : <Link2 size={12} />} {linkCopied ? 'COPIED' : 'COPY'}
+            </button>
+          </div>
         </div>
         <div className="text-right flex flex-col justify-center opacity-30 text-[9px] font-mono uppercase tracking-[0.3em] leading-loose">
           <p>DATA_INTEGRITY: VERIFIED</p>

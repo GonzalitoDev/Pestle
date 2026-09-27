@@ -24,6 +24,7 @@ interface PasteBackend {
   addPaste(paste: NewPaste): Promise<string>;
   getPaste(id: string): Promise<Paste | null>;
   getMyPastes(): Promise<Paste[]>;
+  getPublicPastes(): Promise<Paste[]>;
   deletePaste(id: string): Promise<void>;
 }
 
@@ -46,6 +47,11 @@ const localDb: PasteBackend = {
   },
   async getMyPastes() {
     return readLocal().sort((a, b) => b.createdAt - a.createdAt);
+  },
+  async getPublicPastes() {
+    return readLocal()
+      .filter((p) => p.isPublic)
+      .sort((a, b) => b.createdAt - a.createdAt);
   },
   async deletePaste(id) {
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(readLocal().filter((p) => p.id !== id)));
@@ -84,6 +90,10 @@ const remoteDb: PasteBackend = {
     const res = await api('/pastes');
     return (await res.json()).pastes;
   },
+  async getPublicPastes() {
+    const res = await api('/pastes?scope=public');
+    return (await res.json()).pastes;
+  },
   async deletePaste(id) {
     await api(`/pastes/${encodeURIComponent(id)}`, { method: 'DELETE' });
   },
@@ -104,5 +114,6 @@ export const pasteService: PasteBackend = {
   addPaste: async (paste) => (await resolveBackend()).backend.addPaste(paste),
   getPaste: async (id) => (await resolveBackend()).backend.getPaste(id),
   getMyPastes: async () => (await resolveBackend()).backend.getMyPastes(),
+  getPublicPastes: async () => (await resolveBackend()).backend.getPublicPastes(),
   deletePaste: async (id) => (await resolveBackend()).backend.deletePaste(id),
 };

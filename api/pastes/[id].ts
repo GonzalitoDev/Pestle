@@ -1,4 +1,4 @@
-import { StoredPaste, json, ownerHashFrom, ownerKey, pasteKey, redis, storageUnavailable, toPublic } from '../_lib/store.js';
+import { PUBLIC_FEED_KEY, StoredPaste, json, ownerHashFrom, ownerKey, pasteKey, redis, storageUnavailable, toPublic } from '../_lib/store.js';
 
 function idFrom(request: Request) {
   const id = new URL(request.url).pathname.split('/').pop() ?? '';
@@ -33,6 +33,7 @@ export async function DELETE(request: Request) {
   const tx = redis.multi();
   tx.del(pasteKey(id));
   tx.zrem(ownerKey(ownerHash), id);
+  tx.zrem(PUBLIC_FEED_KEY, id);
   await tx.exec();
   return new Response(null, { status: 204 });
 }
