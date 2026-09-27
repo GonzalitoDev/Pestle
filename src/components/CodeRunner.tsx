@@ -59,9 +59,13 @@ export function buildDocument(code: string, language: string, demo?: string) {
   return CONSOLE_BRIDGE + code;
 }
 
+const LOG_TYPES = new Set(['log', 'info', 'warn', 'error']);
+const MAX_LOG_LENGTH = 10_000;
+
 /**
- * Runs JavaScript, HTML or CSS inside a sandboxed iframe (scripts and forms allowed, no access
- * to this page, its cookies or storage) and shows console output.
+ * Runs JavaScript, HTML or CSS inside /runner.html, loaded in a sandboxed iframe (scripts and
+ * forms allowed, but an opaque origin: no access to this page, its cookies or storage, no
+ * popups or top-level navigation) and shows console output.
  */
 export default function CodeRunner({ code, language, demo, onClose }: CodeRunnerProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -75,10 +79,22 @@ export default function CodeRunner({ code, language, demo, onClose }: CodeRunner
     return () => clearTimeout(t);
   }, [code]);
 
+  const documentRef = useRef('');
+  documentRef.current = buildDocument(debouncedCode, language, demo);
+
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
-      if (e.source !== iframeRef.current?.contentWindow || !e.data?.__pestle) return;
-      setLogs((prev) => [...prev.slice(-199), { type: e.data.type, text: e.data.text }]);
+      const frame = iframeRef.current?.contentWindow;
+      if (!frame || e.source !== frame || typeof e.data !== 'object' || e.data === null) return;
+      if (e.data.__pestleReady === true) {
+        // The runner has an opaque origin, so '*' is the only target that can reach it; it
+        // only accepts this message from its parent window.
+        frame.postMessage({ __pestleRun: true, html: documentRef.current }, '*');
+        return;
+      }
+      if (e.data.__pestle !== true || !LOG_TYPES.has(e.data.type) || typeof e.data.text !== 'string') return;
+      const text = e.data.text.length > MAX_LOG_LENGTH ? e.data.text.slice(0, MAX_LOG_LENGTH) + '…' : e.data.text;
+      setLogs((prev) => [...prev.slice(-199), { type: e.data.type, text }]);
     };
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
@@ -110,12 +126,16 @@ export default function CodeRunner({ code, language, demo, onClose }: CodeRunner
         </div>
       </div>
 
+      <p className="px-4 py-1.5 text-[9px] font-mono uppercase tracking-widest bg-yellow-50 border-b border-[#141414]/10 opacity-80">
+        Isolated sandbox · this code cannot read your Pestle data, cookies or storage
+      </p>
+
       <iframe
         key={`${runId}-${debouncedCode}`}
         ref={iframeRef}
         title="Code runner"
-        sandbox="allow-scripts allow-modals allow-forms"
-        srcDoc={buildDocument(debouncedCode, language, demo)}
+        sandbox="allow-scripts allow-forms"
+        src="/runner.html"
         className={cn('w-full bg-white', showsPreview ? 'h-80 border-b border-[#141414]/10' : 'hidden')}
       />
 

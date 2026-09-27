@@ -28,8 +28,15 @@ export function Privacy() {
       <section>
         <h2>What we store</h2>
         <p>
-          The title, content, language, visibility, creation time and optional expiry of each paste. Nothing else: no email,
-          no IP address, no tracking cookies, no analytics.
+          The title, content, language, visibility, creation time and optional expiry of each paste. No email, no
+          accounts, no tracking cookies, no analytics.
+        </p>
+      </section>
+      <section>
+        <h2>Abuse protection</h2>
+        <p>
+          To stop spam, the API counts requests per IP address. The IP is never stored as-is: only a keyed hash is kept,
+          and each counter is deleted automatically after at most 10 minutes.
         </p>
       </section>
       <section>
@@ -51,8 +58,8 @@ export function Privacy() {
       <section>
         <h2>Code runner</h2>
         <p>
-          Code you run executes only in your browser, inside a sandboxed frame with no access to this site, its storage or
-          your cookies. It is never sent to our servers.
+          Code you run executes only in your browser, inside an isolated sandbox with no access to this site, its storage
+          or your cookies, and it cannot open pop-ups or redirect the page. It is never sent to our servers.
         </p>
       </section>
     </InfoPage>
@@ -84,7 +91,10 @@ export function Terms() {
       </section>
       <section>
         <h2>Limits</h2>
-        <p>Each paste can be up to 512&nbsp;KB and titles up to 200 characters.</p>
+        <p>
+          Each paste can be up to 512&nbsp;KB and titles up to 200 characters. The API allows 20 new pastes per 10 minutes
+          and 300 reads per minute per IP address; above that it answers <code>429 Too Many Requests</code>.
+        </p>
       </section>
     </InfoPage>
   );
@@ -138,7 +148,8 @@ export function ApiDocs() {
     <InfoPage title="RAW_API" subtitle="Use Pestle from your terminal or scripts">
       <p>
         Everything the web app does is available as a JSON API. Responses are JSON unless you request <code>?raw=1</code>.
-        Errors return <code>{'{ "error": "..." }'}</code> with a 4xx/5xx status.
+        Errors return <code>{'{ "error": "..." }'}</code> with a 4xx/5xx status. <code>POST</code> requires{' '}
+        <code>content-type: application/json</code>. Rate limits: 20 creates / 10&nbsp;min and 300 reads / min per IP.
       </p>
       {ENDPOINTS.map((e) => (
         <section key={e.method + e.path} className="border border-[#141414] bg-white">

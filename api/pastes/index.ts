@@ -11,7 +11,9 @@ import {
   ownerHashFrom,
   ownerKey,
   pasteKey,
+  rateLimit,
   redis,
+  safe,
   storageUnavailable,
   toPublic,
 } from '../_lib/store.js';
@@ -23,8 +25,10 @@ const PREVIEW_CHARS = 600;
  * - `?scope=public`: the most recent public pastes (content truncated to a preview).
  * - default: the caller's own pastes (identified by the x-owner-id header).
  */
-export async function GET(request: Request) {
+export const GET = safe(async (request) => {
   if (!redis) return storageUnavailable();
+  const limited = await rateLimit(request, 'read', 300, 60);
+  if (limited) return limited;
   const ownerHash = await ownerHashFrom(request);
   const isPublicFeed = new URL(request.url).searchParams.get('scope') === 'public';
   if (!isPublicFeed && !ownerHash) return json({ error: 'Missing x-owner-id header' }, 400);
@@ -47,15 +51,29 @@ export async function GET(request: Request) {
           : p
       ),
   });
-}
+});
+
+// Room for the JSON envelope around a max-size paste (content can be escaped up to ~6x).
+const MAX_BODY_BYTES = MAX_CONTENT_BYTES * 6 + 4096;
 
 /** Create a paste. */
-export async function POST(request: Request) {
+export const POST = safe(async (request) => {
   if (!redis) return storageUnavailable();
+  if (!request.headers.get('content-type')?.toLowerCase().startsWith('application/json')) {
+    return json({ error: 'content-type must be application/json' }, 415);
+  }
+  if (Number(request.headers.get('content-length') ?? 0) > MAX_BODY_BYTES) {
+    return json({ error: 'Request body too large' }, 413);
+  }
+  const limited = await rateLimit(request, 'create', 20, 600);
+  if (limited) return limited;
 
   let body: Record<string, unknown>;
   try {
-    body = await request.json();
+    const text = await request.text();
+    if (text.length > MAX_BODY_BYTES) return json({ error: 'Request body too large' }, 413);
+    body = JSON.parse(text);
+    if (!body || typeof body !== 'object' || Array.isArray(body)) throw new Error('not an object');
   } catch {
     return json({ error: 'Invalid JSON body' }, 400);
   }
@@ -67,7 +85,10 @@ export async function POST(request: Request) {
     return json({ error: `title must be a string of at most ${MAX_TITLE_LENGTH} characters` }, 400);
   }
   if (!LANGUAGES.includes(language as StoredPaste['language'])) return json({ error: 'unsupported language' }, 400);
-  if (typeof expiresIn !== 'string' || !(expiresIn in EXPIRY_OPTIONS)) return json({ error: 'invalid expiresIn' }, 400);
+  if (typeof expiresIn !== 'string' || !Object.hasOwn(EXPIRY_OPTIONS, expiresIn)) {
+    return json({ error: 'invalid expiresIn' }, 400);
+  }
+  if (isPublic !== undefined && typeof isPublic !== 'boolean') return json({ error: 'isPublic must be a boolean' }, 400);
 
   const ttl = EXPIRY_OPTIONS[expiresIn];
   const ownerHash = await ownerHashFrom(request);
@@ -93,4 +114,4 @@ export async function POST(request: Request) {
   await tx.exec();
 
   return json(toPublic(paste, ownerHash), 201);
-}
+});

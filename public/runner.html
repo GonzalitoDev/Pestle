@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Pestle runner</title>
+  </head>
+  <body>
+    <script>
+      // Isolated code runner. Served with its own CSP and always loaded in a sandboxed
+      // iframe without allow-same-origin, so code here has an opaque origin: it cannot read
+      // Pestle's cookies, storage or DOM, navigate the top page, or open popups.
+      (function () {
+        var started = false;
+        window.addEventListener('message', function (e) {
+          if (started || e.source !== window.parent || !e.data || e.data.__pestleRun !== true) return;
+          if (typeof e.data.html !== 'string') return;
+          started = true;
+          document.open();
+          document.write(e.data.html);
+          document.close();
+        });
+        window.parent.postMessage({ __pestleReady: true }, '*');
+      })();
+    </script>
+  </body>
+</html>

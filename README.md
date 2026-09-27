@@ -13,6 +13,21 @@ A fast pastebin for sharing code snippets with syntax highlighting, ready to dep
 - Raw endpoint `GET /api/pastes/:id?raw=1` and full API docs at `/api-docs`
 
 
+## Security
+
+- **Strict Content-Security-Policy** on the app (`script-src 'self'`, no inline scripts), plus HSTS, `nosniff`,
+  `X-Frame-Options: DENY`, COOP, Referrer-Policy and a locked-down Permissions-Policy (see `vercel.json`).
+- **Isolated code runner**: user code runs in `/runner.html`, loaded in a sandboxed iframe without
+  `allow-same-origin` and served with its own CSP (`sandbox`, `form-action 'none'`). It cannot read the app's DOM,
+  cookies or storage, open pop-ups, show dialogs, redirect the page or submit forms to other sites.
+- **API hardening**: strict input validation, JSON-only `POST` (blocks cross-site form posts), body size limits,
+  generic 500s, `nosniff` + sandbox CSP on responses (raw pastes are always inert `text/plain`).
+- **Rate limiting** per IP (20 creates / 10 min, 300 reads / min, 60 deletes / 10 min); IPs are stored only as a
+  keyed hash that expires with the window.
+- **Ownership**: the browser's owner id acts as a secret; the server stores only an HMAC of it, and only the creator
+  can delete a paste. Paste ids are 12 unbiased base62 characters (~71 bits), so unlisted links can't be guessed.
+- Dependencies audited (`npm audit`); only a low-severity dev-server issue on Windows remains.
+
 ## Run locally
 
 ```bash

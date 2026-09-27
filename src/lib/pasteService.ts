@@ -3,14 +3,25 @@ import { NewPaste, Paste } from '../types';
 const LOCAL_STORAGE_KEY = 'pestle_mock_pastes';
 const OWNER_ID_KEY = 'pestle_owner_id';
 
-/** Anonymous, per-browser identity used to list and delete your own pastes. */
+const OWNER_ID_PATTERN = /^[A-Za-z0-9_-]{16,128}$/;
+let memoryOwnerId: string | null = null;
+
+/**
+ * Anonymous, per-browser identity used to list and delete your own pastes. It works like a
+ * password: only its hash is sent to storage, and it never leaves this browser except in
+ * same-origin API requests. Falls back to an in-memory id when storage is blocked.
+ */
 export function getOwnerId() {
-  let id = localStorage.getItem(OWNER_ID_KEY);
-  if (!id) {
-    id = crypto.randomUUID();
+  try {
+    const stored = localStorage.getItem(OWNER_ID_KEY);
+    if (stored && OWNER_ID_PATTERN.test(stored)) return stored;
+    const id = crypto.randomUUID();
     localStorage.setItem(OWNER_ID_KEY, id);
+    return id;
+  } catch {
+    memoryOwnerId ??= crypto.randomUUID();
+    return memoryOwnerId;
   }
-  return id;
 }
 
 const EXPIRY_MS: Record<NewPaste['expiresIn'], number | null> = {
@@ -60,8 +71,16 @@ const localDb: PasteBackend = {
 
 function readLocal(): Paste[] {
   const now = Date.now();
-  const pastes: Paste[] = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
-  return pastes.filter((p) => !p.expiresAt || p.expiresAt > now);
+  try {
+    const pastes: unknown = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
+    if (!Array.isArray(pastes)) return [];
+    return pastes.filter(
+      (p): p is Paste =>
+        p && typeof p.id === 'string' && typeof p.content === 'string' && (!p.expiresAt || p.expiresAt > now)
+    );
+  } catch {
+    return [];
+  }
 }
 
 /** Vercel Functions backed by Upstash Redis (see /api). */

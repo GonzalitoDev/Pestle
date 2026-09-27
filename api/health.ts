@@ -1,6 +1,6 @@
-import { json, redis } from './_lib/store.js';
+import { json, redis, safe } from './_lib/store.js';
 
-export async function GET() {
+export const GET = safe(async () => {
   if (!redis) return json({ ok: true, storage: false });
   try {
     await redis.ping();
@@ -8,4 +8,4 @@ export async function GET() {
   } catch {
     return json({ ok: false, storage: false }, 503);
   }
-}
+});
