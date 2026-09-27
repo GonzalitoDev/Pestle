@@ -21,9 +21,34 @@ export interface StoredPaste {
   isPublic: boolean;
 }
 
-// Vercel's Upstash integration injects KV_REST_API_*; a direct Upstash setup uses UPSTASH_REDIS_REST_*.
-const url = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL;
-const token = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN;
+/**
+ * Finds the Upstash REST credentials. Vercel's integration injects KV_REST_API_URL/TOKEN (with an
+ * optional custom prefix, e.g. MYDB_KV_REST_API_URL); a direct Upstash setup uses
+ * UPSTASH_REDIS_REST_URL/TOKEN (also possibly prefixed).
+ */
+function findRedisCredentials() {
+  const pairs: [string, string][] = [
+    ['KV_REST_API_URL', 'KV_REST_API_TOKEN'],
+    ['UPSTASH_REDIS_REST_URL', 'UPSTASH_REDIS_REST_TOKEN'],
+  ];
+  for (const [urlKey, tokenKey] of pairs) {
+    if (process.env[urlKey] && process.env[tokenKey]) return { url: process.env[urlKey], token: process.env[tokenKey] };
+  }
+  for (const key of Object.keys(process.env).sort()) {
+    for (const [urlKey, tokenKey] of pairs) {
+      if (!key.endsWith(`_${urlKey}`)) continue;
+      const prefix = key.slice(0, -urlKey.length);
+      const token = process.env[prefix + tokenKey];
+      if (process.env[key] && token) return { url: process.env[key], token };
+    }
+  }
+  return { url: undefined, token: undefined };
+}
+
+const { url, token } = findRedisCredentials();
+
+/** Names (never values) of database-related variables, to explain misconfiguration in /api/health. */
+export const redisEnvNames = Object.keys(process.env).filter((k) => /REDIS|(^|_)KV_|UPSTASH/.test(k)).sort();
 
 export const redis = url && token ? new Redis({ url, token }) : null;
 
