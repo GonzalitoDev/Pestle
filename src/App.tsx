@@ -4,7 +4,7 @@
  */
 
 import { BrowserRouter as Router, Routes, Route, Link, NavLink, useLocation } from 'react-router-dom';
-import { Terminal, Plus, FolderOpen, Github, Globe, Library, Menu, X, Sun, Moon, Monitor, AlertTriangle, Smartphone } from 'lucide-react';
+import { Terminal, Plus, FolderOpen, Github, Globe, Library, Menu, X, Sun, Moon, Monitor, AlertTriangle, Smartphone, GraduationCap } from 'lucide-react';
 import { Suspense, lazy, useEffect, useState } from 'react';
 import { resolveBackend } from './lib/pasteService';
 import { ThemePreference, useTheme } from './lib/theme';
@@ -20,6 +20,8 @@ const PasteView = lazy(() => import('./pages/PasteView'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Codes = lazy(() => import('./pages/Codes'));
 const Explore = lazy(() => import('./pages/Explore'));
+const Courses = lazy(() => import('./pages/Courses'));
+const Lesson = lazy(() => import('./pages/Lesson'));
 const Privacy = lazy(() => import('./pages/Info').then((m) => ({ default: m.Privacy })));
 const Terms = lazy(() => import('./pages/Info').then((m) => ({ default: m.Terms })));
 const ApiDocs = lazy(() => import('./pages/Info').then((m) => ({ default: m.ApiDocs })));
@@ -30,6 +32,7 @@ const REPO_URL = 'https://github.com/gonzalitodev/pestesting';
 const NAV_ITEMS = [
   { to: '/', label: 'New paste', icon: Plus, end: true },
   { to: '/codes', label: 'Library', icon: Library, end: false },
+  { to: '/cursos', label: 'Cursos', icon: GraduationCap, end: false },
   { to: '/explore', label: 'Explore', icon: Globe, end: false },
   { to: '/dashboard', label: 'My pastes', icon: FolderOpen, end: false },
 ];
@@ -86,7 +89,7 @@ export default function App() {
 
   const desktopLink = ({ isActive }: { isActive: boolean }) =>
     cn(
-      'inline-flex h-9 items-center gap-2 rounded-lg px-3 text-sm transition-colors',
+      'inline-flex h-9 items-center gap-2 whitespace-nowrap rounded-lg px-3 text-sm transition-colors',
       isActive ? 'bg-surface-2 text-fg font-medium' : 'text-muted hover:text-fg hover:bg-surface-2'
     );
 
@@ -116,7 +119,7 @@ export default function App() {
                   </span>
                   <span className="text-lg">Pestle</span>
                 </Link>
-                <div className="hidden md:flex items-center gap-1">
+                <div className="hidden lg:flex items-center gap-1">
                   {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
                     <NavLink key={to} to={to} end={end} className={desktopLink}>
                       <Icon className="size-4" aria-hidden /> {label}
@@ -141,7 +144,7 @@ export default function App() {
                 </a>
                 <button
                   onClick={() => setMenuOpen((o) => !o)}
-                  className="md:hidden inline-flex h-9 items-center rounded-lg px-2.5 text-fg hover:bg-surface-2"
+                  className="lg:hidden inline-flex h-9 items-center rounded-lg px-2.5 text-fg hover:bg-surface-2"
                   aria-label="Toggle menu"
                   aria-expanded={menuOpen}
                 >
@@ -151,7 +154,7 @@ export default function App() {
             </div>
 
             {menuOpen && (
-              <div className="md:hidden border-t border-line bg-bg px-4 py-3 space-y-1 animate-fade-up">
+              <div className="lg:hidden border-t border-line bg-bg px-4 py-3 space-y-1 animate-fade-up">
                 {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
                   <NavLink
                     key={to}
@@ -191,6 +194,9 @@ export default function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/codes" element={<Codes />} />
               <Route path="/explore" element={<Explore />} />
+              <Route path="/cursos" element={<Courses />} />
+              <Route path="/cursos/:courseId" element={<Lesson />} />
+              <Route path="/cursos/:courseId/:lessonId" element={<Lesson />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/api-docs" element={<ApiDocs />} />

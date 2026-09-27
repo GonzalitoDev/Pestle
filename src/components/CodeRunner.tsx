@@ -7,7 +7,7 @@ import { isRunnable } from '../lib/runnable';
 /** Python runs in the browser via Pyodide (CPython compiled to WebAssembly), inside the sandbox. */
 export const PYODIDE_URL = 'https://cdn.jsdelivr.net/pyodide/v314.0.7/full/';
 
-interface LogLine {
+export interface LogLine {
   type: 'log' | 'info' | 'warn' | 'error';
   text: string;
 }
@@ -15,6 +15,8 @@ interface LogLine {
 interface CodeRunnerProps {
   code: string;
   language: string;
+  /** Called for every console line the code produces (e.g. to detect a passed exercise). */
+  onLog?: (line: LogLine) => void;
   /** Extra markup rendered under CSS snippets. */
   demo?: string;
   onClose?: () => void;
@@ -76,7 +78,9 @@ const PYTHON_BOOT = `(async function () {
     await py.runPythonAsync(code);
   } catch (e) {
     var lines = String(e && e.message ? e.message : e).trim().split('\\n');
-    var start = lines.findIndex(function (l) { return l.indexOf('File "<exec>"') !== -1; });
+    var mine = function (tag) { return lines.findIndex(function (l) { return l.indexOf('File "' + tag + '"') !== -1; }); };
+    var start = mine('<tu código>');
+    if (start < 0) start = mine('<exec>');
     console.error((start > 0 ? ['Traceback (most recent call last):'].concat(lines.slice(start)) : lines.slice(-6)).join('\\n'));
     if (/ModuleNotFoundError/.test(String(e))) {
       console.warn('This package is not available in the browser. Run it locally with: python script.py');
@@ -110,7 +114,7 @@ const MAX_LOG_LENGTH = 10_000;
  * forms allowed, but an opaque origin: no access to this page, its cookies or storage, no
  * popups or top-level navigation) and shows console output.
  */
-export default function CodeRunner({ code, language, demo, onClose }: CodeRunnerProps) {
+export default function CodeRunner({ code, language, demo, onClose, onLog }: CodeRunnerProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [logs, setLogs] = useState<LogLine[]>([]);
   const [runId, setRunId] = useState(0);
@@ -129,6 +133,8 @@ export default function CodeRunner({ code, language, demo, onClose }: CodeRunner
     return () => clearTimeout(t);
   }, [code]);
 
+  const onLogRef = useRef(onLog);
+  onLogRef.current = onLog;
   const documentRef = useRef('');
   documentRef.current = buildDocument(debouncedCode, effectiveLanguage, demo);
 
@@ -145,6 +151,7 @@ export default function CodeRunner({ code, language, demo, onClose }: CodeRunner
       if (e.data.__pestle !== true || !LOG_TYPES.has(e.data.type) || typeof e.data.text !== 'string') return;
       const text = e.data.text.length > MAX_LOG_LENGTH ? e.data.text.slice(0, MAX_LOG_LENGTH) + '…' : e.data.text;
       setLogs((prev) => [...prev.slice(-199), { type: e.data.type, text }]);
+      onLogRef.current?.({ type: e.data.type, text });
     };
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);

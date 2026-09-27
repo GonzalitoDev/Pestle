@@ -1,0 +1,101 @@
+import { Link } from 'react-router-dom';
+import { ArrowRight, BookOpen, CheckCircle2, GraduationCap, Play } from 'lucide-react';
+import { COURSES } from '../data/courses';
+import { useCompleted } from '../lib/courseProgress';
+import { Badge, Card, PageHeader, buttonClass } from '../components/ui';
+
+export default function Courses() {
+  const done = useCompleted();
+
+  return (
+    <div className="space-y-8 animate-fade-up">
+      <PageHeader
+        icon={GraduationCap}
+        title="Cursos de Python"
+        description="Aprendé programando: cada lección tiene una explicación, ejemplos que podés ejecutar y un ejercicio que se corrige solo. Todo corre en tu navegador, sin instalar nada."
+      />
+
+      <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+        {COURSES.map((course) => {
+          const completed = course.lessons.filter((l) => done.has(`${course.id}/${l.id}`)).length;
+          const total = course.lessons.length;
+          const next = course.lessons.find((l) => !done.has(`${course.id}/${l.id}`)) ?? course.lessons[0];
+          const pct = Math.round((completed / total) * 100);
+          return (
+            <Card key={course.id} className="flex flex-col p-6">
+              <div className="flex items-start justify-between gap-3">
+                <div className="grid size-11 place-items-center rounded-xl bg-accent-soft">
+                  <BookOpen className="size-5 text-accent" aria-hidden />
+                </div>
+                <Badge tone={course.level === 'Principiante' ? 'success' : 'accent'}>{course.level}</Badge>
+              </div>
+              <h2 className="mt-4 text-xl font-semibold tracking-tight">{course.title}</h2>
+              <p className="mt-1 flex-1 text-sm text-muted">{course.description}</p>
+
+              <div className="mt-5 space-y-2">
+                <div className="flex items-center justify-between text-xs text-muted">
+                  <span>
+                    {completed} de {total} lecciones
+                  </span>
+                  <span>{pct}%</span>
+                </div>
+                <div
+                  className="h-2 overflow-hidden rounded-full bg-surface-2"
+                  role="progressbar"
+                  aria-valuenow={pct}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label={`Progreso en ${course.title}`}
+                >
+                  <div className="h-full rounded-full bg-success transition-all" style={{ width: `${pct}%` }} />
+                </div>
+              </div>
+
+              <Link to={`/cursos/${course.id}/${next.id}`} className={buttonClass(completed ? 'secondary' : 'primary', 'md', 'mt-5')}>
+                {completed === total ? (
+                  <>
+                    <CheckCircle2 className="size-4 text-success" aria-hidden /> Repasar
+                  </>
+                ) : completed ? (
+                  <>
+                    Continuar: {next.title} <ArrowRight className="size-4" aria-hidden />
+                  </>
+                ) : (
+                  <>
+                    <Play className="size-4" aria-hidden /> Empezar el curso
+                  </>
+                )}
+              </Link>
+
+              <details className="mt-4 text-sm">
+                <summary className="cursor-pointer text-muted hover:text-fg">Ver temario</summary>
+                <ol className="mt-3 space-y-1">
+                  {course.lessons.map((l, i) => (
+                    <li key={l.id}>
+                      <Link
+                        to={`/cursos/${course.id}/${l.id}`}
+                        className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-surface-2"
+                      >
+                        {done.has(`${course.id}/${l.id}`) ? (
+                          <CheckCircle2 className="size-4 shrink-0 text-success" aria-label="Completada" />
+                        ) : (
+                          <span className="grid size-4 shrink-0 place-items-center text-[10px] text-muted">{i + 1}</span>
+                        )}
+                        {l.title}
+                      </Link>
+                    </li>
+                  ))}
+                </ol>
+              </details>
+            </Card>
+          );
+        })}
+      </div>
+
+      <p className="text-sm text-muted">
+        Tu progreso se guarda en este navegador. Python corre dentro de tu navegador (con Pyodide): la primera vez que ejecutes
+        código tarda unos segundos en cargar.
+      </p>
+    </div>
+  );
+}
