@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Send, Play, Globe, Link2, Sparkles, Wand2, Smartphone, Download } from 'lucide-react';
 import { pasteService } from '../lib/pasteService';
 import { EXPIRIES, Expiry, LANGUAGES, Language } from '../types';
-import { isRunnable } from '../data/snippets';
+import { isRunnable } from '../lib/runnable';
 import { detectLanguage } from '../lib/detectLanguage';
 import CodeRunner from '../components/CodeRunner';
 import { Button, Card, Field, Kbd, Segmented, Select, buttonClass } from '../components/ui';

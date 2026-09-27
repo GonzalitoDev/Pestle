@@ -20,7 +20,7 @@ import {
 import { pasteService, resolveBackend } from '../lib/pasteService';
 import { Paste } from '../types';
 import { downloadText, formatDate, timeAgo } from '../lib/utils';
-import { isRunnable } from '../data/snippets';
+import { isRunnable } from '../lib/runnable';
 import { detectLanguage } from '../lib/detectLanguage';
 import CodeRunner from '../components/CodeRunner';
 import CodeBlock from '../components/CodeBlock';

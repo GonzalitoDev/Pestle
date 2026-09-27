@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Eye, Play, RotateCcw, ShieldCheck, Wand2, X } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { detectLanguage } from '../lib/detectLanguage';
-import { isRunnable } from '../data/snippets';
+import { isRunnable } from '../lib/runnable';
 
 /** Python runs in the browser via Pyodide (CPython compiled to WebAssembly), inside the sandbox. */
 export const PYODIDE_URL = 'https://cdn.jsdelivr.net/pyodide/v314.0.7/full/';

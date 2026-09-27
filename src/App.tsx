@@ -5,7 +5,7 @@
 
 import { BrowserRouter as Router, Routes, Route, Link, NavLink, useLocation } from 'react-router-dom';
 import { Terminal, Plus, FolderOpen, Github, Globe, Library, Menu, X, Sun, Moon, Monitor, AlertTriangle, Smartphone } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import { resolveBackend } from './lib/pasteService';
 import { ThemePreference, useTheme } from './lib/theme';
 import { initNative, syncSystemBars } from './lib/native';
@@ -13,11 +13,17 @@ import ApkLink from './components/ApkLink';
 import { cn } from './lib/utils';
 import { ToastProvider } from './components/Toast';
 import Home from './pages/Home';
-import PasteView from './pages/PasteView';
-import Dashboard from './pages/Dashboard';
-import Codes from './pages/Codes';
-import Explore from './pages/Explore';
-import { ApiDocs, NotFound, Privacy, Terms } from './pages/Info';
+import { Spinner } from './components/ui';
+
+// Pages other than the editor load on demand, keeping the first download small.
+const PasteView = lazy(() => import('./pages/PasteView'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Codes = lazy(() => import('./pages/Codes'));
+const Explore = lazy(() => import('./pages/Explore'));
+const Privacy = lazy(() => import('./pages/Info').then((m) => ({ default: m.Privacy })));
+const Terms = lazy(() => import('./pages/Info').then((m) => ({ default: m.Terms })));
+const ApiDocs = lazy(() => import('./pages/Info').then((m) => ({ default: m.ApiDocs })));
+const NotFound = lazy(() => import('./pages/Info').then((m) => ({ default: m.NotFound })));
 
 const REPO_URL = 'https://github.com/gonzalitodev/pestesting';
 
@@ -172,6 +178,13 @@ export default function App() {
           </nav>
 
           <main id="main" className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-10">
+            <Suspense
+              fallback={
+                <div className="flex h-[40vh] items-center justify-center text-muted">
+                  <Spinner />
+                </div>
+              }
+            >
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/paste/:id" element={<PasteView />} />
@@ -183,6 +196,7 @@ export default function App() {
               <Route path="/api-docs" element={<ApiDocs />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
+            </Suspense>
           </main>
 
           <footer className="border-t border-line">
