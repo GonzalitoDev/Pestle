@@ -1,8 +1,9 @@
 /**
  * Python courses. Every exercise is checked in the browser (Pyodide): the student's code runs,
  * then `tests` (hidden Python using plain asserts) verify it. `_salida()` returns everything the
- * student's code printed. Each lesson's `solution` must pass its tests — see scripts/check-courses.
+ * student's code printed. Each lesson's `solution` must pass its tests.
  */
+import type { ProjectRequirement } from '../lib/pythonCheck';
 
 export interface Lesson {
   id: string;
@@ -16,12 +17,26 @@ export interface Lesson {
   hint?: string;
 }
 
+export interface Project {
+  title: string;
+  /** Mini-markdown, like lessons. */
+  intro: string;
+  starter: string;
+  solution: string;
+  /** Python run before each requirement's test (e.g. sample data). */
+  setup?: string;
+  requirements: ProjectRequirement[];
+  /** Concept keys (see CONCEPT_LABELS) the project is meant to exercise. */
+  concepts: string[];
+}
+
 export interface Course {
   id: string;
   title: string;
   description: string;
   level: 'Principiante' | 'Intermedio';
   lessons: Lesson[];
+  project: Project;
 }
 
 export const COURSES: Course[] = [
@@ -477,6 +492,152 @@ assert fizzbuzz(0) == [], 'fizzbuzz(0) es una lista vacía.'`,
         hint: 'Chequeá primero el caso de múltiplo de 15 (3 y 5), después 3, después 5.',
       },
     ],
+    project: {
+      title: 'Gestor de tareas',
+      intro: `¡Llegaste al final del curso! Ahora vas a construir un programa completo usando todo lo que aprendiste: una **clase**, **listas** y **diccionarios**, **condicionales**, **bucles**, **errores** y **f-strings**.
+
+Vas a programar un **gestor de tareas**: cada tarea tiene un título, una prioridad (1 = alta, 2 = media, 3 = baja) y puede estar pendiente o completada.
+
+Completá los métodos de la clase \`GestorTareas\`. Cada vez que toques **Probar mi proyecto** se revisan los requisitos uno por uno, así sabés exactamente qué te falta. Podés agregar todos los métodos y variables extra que quieras.
+
+Una idea para guardar las tareas: una lista de diccionarios como \`{"titulo": "Estudiar", "prioridad": 1, "hecha": False}\`.`,
+      starter: `class GestorTareas:
+    """Un gestor de tareas con prioridades."""
+
+    def __init__(self):
+        pass
+
+    def agregar(self, titulo, prioridad):
+        pass
+
+    def completar(self, titulo):
+        pass
+
+    def pendientes(self):
+        pass
+
+    def resumen(self):
+        pass
+
+    def por_prioridad(self):
+        pass
+
+
+# Probá tu gestor acá abajo
+gestor = GestorTareas()
+`,
+      solution: `class GestorTareas:
+    """Un gestor de tareas con prioridades."""
+
+    def __init__(self):
+        self.tareas = []
+
+    def agregar(self, titulo, prioridad):
+        if prioridad not in (1, 2, 3):
+            raise ValueError("La prioridad tiene que ser 1, 2 o 3")
+        self.tareas.append({"titulo": titulo, "prioridad": prioridad, "hecha": False})
+
+    def completar(self, titulo):
+        for tarea in self.tareas:
+            if tarea["titulo"] == titulo:
+                tarea["hecha"] = True
+                return
+        raise KeyError(titulo)
+
+    def pendientes(self):
+        pendientes = [t for t in self.tareas if not t["hecha"]]
+        ordenadas = sorted(pendientes, key=lambda t: t["prioridad"])
+        return [t["titulo"] for t in ordenadas]
+
+    def resumen(self):
+        hechas = len([t for t in self.tareas if t["hecha"]])
+        return f"Pendientes: {len(self.tareas) - hechas} | Completadas: {hechas}"
+
+    def por_prioridad(self):
+        conteo = {}
+        for tarea in self.tareas:
+            if not tarea["hecha"]:
+                conteo[tarea["prioridad"]] = conteo.get(tarea["prioridad"], 0) + 1
+        return conteo
+
+
+gestor = GestorTareas()
+gestor.agregar("Estudiar Python", 1)
+gestor.agregar("Comprar yerba", 3)
+gestor.agregar("Llamar a Sofi", 2)
+gestor.completar("Comprar yerba")
+print(gestor.pendientes())
+print(gestor.resumen())
+print(gestor.por_prioridad())
+`,
+      requirements: [
+        {
+          id: 'nuevo',
+          text: 'Un gestor nuevo empieza sin tareas: pendientes() devuelve una lista vacía.',
+          test: `g = GestorTareas()
+assert g.pendientes() == [], 'Un gestor nuevo tiene que devolver [] en pendientes().'`,
+        },
+        {
+          id: 'agregar',
+          text: 'agregar(titulo, prioridad) guarda la tarea. Si la prioridad no es 1, 2 o 3, lanza ValueError.',
+          test: `g = GestorTareas()
+g.agregar("Estudiar", 1)
+assert g.pendientes() == ["Estudiar"], 'Después de agregar("Estudiar", 1), pendientes() tiene que ser ["Estudiar"].'
+try:
+    g.agregar("Imposible", 7)
+    assert False, 'agregar con prioridad 7 tiene que lanzar ValueError.'
+except ValueError:
+    pass
+assert g.pendientes() == ["Estudiar"], 'Una tarea con prioridad inválida no se tiene que guardar.'`,
+        },
+        {
+          id: 'orden',
+          text: 'pendientes() devuelve los títulos ordenados por prioridad (1 primero); a igual prioridad, en el orden en que se agregaron.',
+          test: `g = GestorTareas()
+g.agregar("baja", 3)
+g.agregar("alta", 1)
+g.agregar("media", 2)
+g.agregar("alta 2", 1)
+assert g.pendientes() == ["alta", "alta 2", "media", "baja"], 'El orden tiene que ser ["alta", "alta 2", "media", "baja"].'`,
+        },
+        {
+          id: 'completar',
+          text: 'completar(titulo) marca la tarea como hecha (deja de estar pendiente). Si no existe, lanza KeyError.',
+          test: `g = GestorTareas()
+g.agregar("a", 1)
+g.agregar("b", 2)
+g.completar("a")
+assert g.pendientes() == ["b"], 'Después de completar("a") solo queda "b" pendiente.'
+try:
+    g.completar("no existe")
+    assert False, 'completar una tarea que no existe tiene que lanzar KeyError.'
+except KeyError:
+    pass`,
+        },
+        {
+          id: 'resumen',
+          text: 'resumen() devuelve un texto como "Pendientes: 2 | Completadas: 1".',
+          test: `g = GestorTareas()
+g.agregar("a", 1)
+g.agregar("b", 2)
+g.agregar("c", 3)
+g.completar("b")
+assert g.resumen() == "Pendientes: 2 | Completadas: 1", 'resumen() tiene que devolver exactamente "Pendientes: 2 | Completadas: 1".'`,
+        },
+        {
+          id: 'por-prioridad',
+          text: 'por_prioridad() devuelve un diccionario {prioridad: cantidad} contando solo las tareas pendientes.',
+          test: `g = GestorTareas()
+g.agregar("a", 1)
+g.agregar("b", 1)
+g.agregar("c", 3)
+g.agregar("d", 2)
+g.completar("d")
+assert g.por_prioridad() == {1: 2, 3: 1}, 'Con 2 pendientes de prioridad 1 y 1 de prioridad 3 tiene que dar {1: 2, 3: 1}.'`,
+        },
+      ],
+      concepts: ['clases', 'funciones', 'condicionales', 'for', 'listas', 'diccionarios', 'errores', 'f-strings'],
+    },
   },
   {
     id: 'python-practico',
@@ -658,6 +819,172 @@ assert list(fibonacci(12))[-1] == 89, 'El número 12 de la serie es 89.'`,
         hint: 'Usá dos variables a, b = 0, 1 y en cada vuelta: yield a y después a, b = b, a + b.',
       },
     ],
+    project: {
+      title: 'Analizador de gastos',
+      intro: `Para cerrar el curso vas a armar un **analizador de gastos** personales, combinando todo lo práctico que aprendiste: **JSON**, **fechas**, **diccionarios**, **ordenar con lambda**, **generadores** y **archivos**.
+
+Los gastos llegan como texto JSON, por ejemplo:
+
+\`\`\`
+[{"fecha": "03/01/2025", "categoria": "comida", "monto": 12500.5},
+ {"fecha": "10/02/2025", "categoria": "servicios", "monto": 25000}]
+\`\`\`
+
+Completá las cinco funciones. Cada requisito se prueba por separado con estos datos de ejemplo (la variable \`DATOS\`), así ves qué funciona y qué falta.`,
+      starter: `import json
+from datetime import datetime
+
+DATOS = """[
+  {"fecha": "03/01/2025", "categoria": "comida", "monto": 12500.5},
+  {"fecha": "15/01/2025", "categoria": "transporte", "monto": 3200},
+  {"fecha": "02/02/2025", "categoria": "comida", "monto": 8700.25},
+  {"fecha": "10/02/2025", "categoria": "servicios", "monto": 25000},
+  {"fecha": "28/02/2025", "categoria": "transporte", "monto": 1800}
+]"""
+
+
+def cargar_gastos(texto_json):
+    """Devuelve una lista de diccionarios con la fecha convertida a date."""
+    pass
+
+
+def total_por_categoria(gastos):
+    """Devuelve {categoria: total} con los totales redondeados a 2 decimales."""
+    pass
+
+
+def top_gastos(gastos, n):
+    """Devuelve los n gastos más grandes, de mayor a menor."""
+    pass
+
+
+def gastos_del_mes(gastos, mes, anio):
+    """Generador: produce los gastos de ese mes y año."""
+    pass
+
+
+def guardar_reporte(nombre_archivo, gastos):
+    """Escribe una línea "categoria: total" por categoría (en orden alfabético) y devuelve cuántas líneas escribió."""
+    pass
+
+
+gastos = cargar_gastos(DATOS)
+`,
+      solution: `import json
+from datetime import datetime
+
+DATOS = """[
+  {"fecha": "03/01/2025", "categoria": "comida", "monto": 12500.5},
+  {"fecha": "15/01/2025", "categoria": "transporte", "monto": 3200},
+  {"fecha": "02/02/2025", "categoria": "comida", "monto": 8700.25},
+  {"fecha": "10/02/2025", "categoria": "servicios", "monto": 25000},
+  {"fecha": "28/02/2025", "categoria": "transporte", "monto": 1800}
+]"""
+
+
+def cargar_gastos(texto_json):
+    """Devuelve una lista de diccionarios con la fecha convertida a date."""
+    gastos = []
+    for g in json.loads(texto_json):
+        fecha = datetime.strptime(g["fecha"], "%d/%m/%Y").date()
+        gastos.append({"fecha": fecha, "categoria": g["categoria"], "monto": g["monto"]})
+    return gastos
+
+
+def total_por_categoria(gastos):
+    """Devuelve {categoria: total} con los totales redondeados a 2 decimales."""
+    totales = {}
+    for g in gastos:
+        totales[g["categoria"]] = totales.get(g["categoria"], 0) + g["monto"]
+    return {categoria: round(total, 2) for categoria, total in totales.items()}
+
+
+def top_gastos(gastos, n):
+    """Devuelve los n gastos más grandes, de mayor a menor."""
+    return sorted(gastos, key=lambda g: g["monto"], reverse=True)[:n]
+
+
+def gastos_del_mes(gastos, mes, anio):
+    """Generador: produce los gastos de ese mes y año."""
+    for g in gastos:
+        if g["fecha"].month == mes and g["fecha"].year == anio:
+            yield g
+
+
+def guardar_reporte(nombre_archivo, gastos):
+    """Escribe una línea "categoria: total" por categoría (en orden alfabético) y devuelve cuántas líneas escribió."""
+    totales = total_por_categoria(gastos)
+    with open(nombre_archivo, "w", encoding="utf-8") as f:
+        for categoria in sorted(totales):
+            f.write(f"{categoria}: {totales[categoria]}\\n")
+    return len(totales)
+
+
+gastos = cargar_gastos(DATOS)
+print(total_por_categoria(gastos))
+print([g["monto"] for g in top_gastos(gastos, 2)])
+print(sum(g["monto"] for g in gastos_del_mes(gastos, 2, 2025)))
+`,
+      setup: `from datetime import date as _date
+_DATOS = """[
+  {"fecha": "03/01/2025", "categoria": "comida", "monto": 12500.5},
+  {"fecha": "15/01/2025", "categoria": "transporte", "monto": 3200},
+  {"fecha": "02/02/2025", "categoria": "comida", "monto": 8700.25},
+  {"fecha": "10/02/2025", "categoria": "servicios", "monto": 25000},
+  {"fecha": "28/02/2025", "categoria": "transporte", "monto": 1800}
+]"""`,
+      requirements: [
+        {
+          id: 'cargar',
+          text: 'cargar_gastos(texto_json) devuelve una lista de diccionarios con "fecha" convertida a fecha (date), "categoria" y "monto".',
+          test: `gs = cargar_gastos(_DATOS)
+assert isinstance(gs, list) and len(gs) == 5, 'cargar_gastos tiene que devolver una lista con los 5 gastos.'
+fecha = gs[0]["fecha"]
+assert hasattr(fecha, "year") and (fecha.year, fecha.month, fecha.day) == (2025, 1, 3), 'La fecha "03/01/2025" tiene que convertirse a date(2025, 1, 3). Usá datetime.strptime(..., "%d/%m/%Y").date().'
+assert gs[0]["categoria"] == "comida" and gs[0]["monto"] == 12500.5, 'Cada gasto tiene que conservar "categoria" y "monto".'`,
+        },
+        {
+          id: 'totales',
+          text: 'total_por_categoria(gastos) devuelve {categoria: total} redondeado a 2 decimales.',
+          test: `_gs = cargar_gastos(_DATOS)
+assert isinstance(_gs, list) and len(_gs) == 5, 'Este requisito usa cargar_gastos: completala primero.'
+assert total_por_categoria(cargar_gastos(_DATOS)) == {"comida": 21200.75, "transporte": 5000, "servicios": 25000}, 'Los totales tienen que ser {"comida": 21200.75, "transporte": 5000, "servicios": 25000}.'
+assert total_por_categoria([]) == {}, 'Sin gastos, el resultado es un diccionario vacío.'`,
+        },
+        {
+          id: 'top',
+          text: 'top_gastos(gastos, n) devuelve los n gastos más grandes, de mayor a menor.',
+          test: `_gs = cargar_gastos(_DATOS)
+assert isinstance(_gs, list) and len(_gs) == 5, 'Este requisito usa cargar_gastos: completala primero.'
+top = top_gastos(cargar_gastos(_DATOS), 2)
+assert [g["monto"] for g in top] == [25000, 12500.5], 'Los 2 gastos más grandes son 25000 y 12500.5 (en ese orden).'`,
+        },
+        {
+          id: 'mes',
+          text: 'gastos_del_mes(gastos, mes, anio) es un generador (usa yield) que produce solo los gastos de ese mes.',
+          test: `_gs = cargar_gastos(_DATOS)
+assert isinstance(_gs, list) and len(_gs) == 5, 'Este requisito usa cargar_gastos: completala primero.'
+import types
+gen = gastos_del_mes(cargar_gastos(_DATOS), 2, 2025)
+assert isinstance(gen, types.GeneratorType), 'gastos_del_mes tiene que ser un generador: usá yield.'
+febrero = list(gen)
+assert len(febrero) == 3 and round(sum(g["monto"] for g in febrero), 2) == 35500.25, 'En febrero de 2025 hay 3 gastos que suman 35500.25.'
+assert list(gastos_del_mes(cargar_gastos(_DATOS), 3, 2025)) == [], 'En marzo de 2025 no hay gastos.'`,
+        },
+        {
+          id: 'reporte',
+          text: 'guardar_reporte(nombre_archivo, gastos) escribe "categoria: total" por línea en orden alfabético y devuelve la cantidad de líneas.',
+          test: `_gs = cargar_gastos(_DATOS)
+assert isinstance(_gs, list) and len(_gs) == 5, 'Este requisito usa cargar_gastos: completala primero.'
+n = guardar_reporte("_reporte.txt", cargar_gastos(_DATOS))
+assert n == 3, 'guardar_reporte tiene que devolver 3 (una línea por categoría).'
+with open("_reporte.txt", encoding="utf-8") as f:
+    lineas = f.read().splitlines()
+assert lineas == ["comida: 21200.75", "servicios: 25000", "transporte: 5000"], 'El archivo tiene que tener: "comida: 21200.75", "servicios: 25000", "transporte: 5000".'`,
+        },
+      ],
+      concepts: ['modulos', 'funciones', 'diccionarios', 'comprensiones', 'lambda', 'generadores', 'archivos', 'for'],
+    },
   },
 ];
 

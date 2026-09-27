@@ -17,6 +17,8 @@ interface CodeRunnerProps {
   language: string;
   /** Called for every console line the code produces (e.g. to detect a passed exercise). */
   onLog?: (line: LogLine) => void;
+  /** Lines for which this returns true are passed to onLog but not shown in the console. */
+  hideLine?: (text: string) => boolean;
   /** Extra markup rendered under CSS snippets. */
   demo?: string;
   onClose?: () => void;
@@ -114,7 +116,7 @@ const MAX_LOG_LENGTH = 10_000;
  * forms allowed, but an opaque origin: no access to this page, its cookies or storage, no
  * popups or top-level navigation) and shows console output.
  */
-export default function CodeRunner({ code, language, demo, onClose, onLog }: CodeRunnerProps) {
+export default function CodeRunner({ code, language, demo, onClose, onLog, hideLine }: CodeRunnerProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [logs, setLogs] = useState<LogLine[]>([]);
   const [runId, setRunId] = useState(0);
@@ -135,6 +137,8 @@ export default function CodeRunner({ code, language, demo, onClose, onLog }: Cod
 
   const onLogRef = useRef(onLog);
   onLogRef.current = onLog;
+  const hideLineRef = useRef(hideLine);
+  hideLineRef.current = hideLine;
   const documentRef = useRef('');
   documentRef.current = buildDocument(debouncedCode, effectiveLanguage, demo);
 
@@ -150,8 +154,9 @@ export default function CodeRunner({ code, language, demo, onClose, onLog }: Cod
       }
       if (e.data.__pestle !== true || !LOG_TYPES.has(e.data.type) || typeof e.data.text !== 'string') return;
       const text = e.data.text.length > MAX_LOG_LENGTH ? e.data.text.slice(0, MAX_LOG_LENGTH) + '…' : e.data.text;
-      setLogs((prev) => [...prev.slice(-199), { type: e.data.type, text }]);
       onLogRef.current?.({ type: e.data.type, text });
+      if (hideLineRef.current?.(text)) return;
+      setLogs((prev) => [...prev.slice(-199), { type: e.data.type, text }]);
     };
     window.addEventListener('message', onMessage);
     return () => window.removeEventListener('message', onMessage);
