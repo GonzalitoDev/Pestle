@@ -1,14 +1,15 @@
 import { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import { buttonClass } from '../components/ui';
 
 function InfoPage({ title, subtitle, children }: { title: string; subtitle: string; children: ReactNode }) {
   return (
-    <article className="max-w-3xl space-y-8 animate-in fade-in duration-700">
-      <header className="space-y-2 border-b border-[#141414] pb-6">
-        <h1 className="text-3xl font-mono font-bold tracking-tighter">{title}</h1>
-        <p className="text-xs font-mono uppercase tracking-[0.2em] opacity-40">{subtitle}</p>
+    <article className="mx-auto max-w-3xl space-y-8 animate-fade-up">
+      <header className="space-y-2 border-b border-line pb-6">
+        <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
+        <p className="text-muted">{subtitle}</p>
       </header>
-      <div className="space-y-6 text-sm leading-relaxed [&_h2]:font-mono [&_h2]:font-bold [&_h2]:uppercase [&_h2]:tracking-wider [&_h2]:text-xs [&_h2]:mb-2 [&_code]:font-mono [&_code]:text-xs [&_code]:bg-white [&_code]:px-1 [&_code]:border [&_code]:border-[#141414]/10">
+      <div className="space-y-7 leading-relaxed text-fg/90 [&_h2]:mb-2 [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:text-fg [&_a]:text-accent [&_a]:underline [&_a]:underline-offset-2 [&_code]:rounded-md [&_code]:border [&_code]:border-line [&_code]:bg-surface-2 [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:font-mono [&_code]:text-[0.85em]">
         {children}
       </div>
     </article>
@@ -17,25 +18,32 @@ function InfoPage({ title, subtitle, children }: { title: string; subtitle: stri
 
 export function Privacy() {
   return (
-    <InfoPage title="PRIVACY.MD" subtitle="What Pestle stores and why">
+    <InfoPage title="Privacy" subtitle="What Pestle stores and why">
       <section>
         <h2>No accounts</h2>
         <p>
           Pestle has no sign-up. Your browser gets a random identifier (stored in <code>localStorage</code>) so you can list
-          and delete the pastes you created. The server only keeps a one-way SHA-256 hash of it.
+          and delete the pastes you created. The server only keeps a keyed one-way hash (HMAC-SHA256) of it.
         </p>
       </section>
       <section>
         <h2>What we store</h2>
         <p>
-          The title, content, language, visibility, creation time and optional expiry of each paste. Nothing else: no email,
-          no IP address, no tracking cookies, no analytics.
+          The title, content, language, visibility, creation time and optional expiry of each paste. No email, no
+          accounts, no tracking cookies, no analytics.
+        </p>
+      </section>
+      <section>
+        <h2>Abuse protection</h2>
+        <p>
+          To stop spam, the API counts requests per IP address. The IP is never stored as-is: only a keyed hash is kept,
+          and each counter is deleted automatically after at most 10 minutes.
         </p>
       </section>
       <section>
         <h2>Visibility</h2>
         <p>
-          <strong>Public</strong> pastes appear in the <Link className="underline" to="/explore">public feed</Link>.{' '}
+          <strong>Public</strong> pastes appear in the <Link to="/explore">public feed</Link>.{' '}
           <strong>Unlisted</strong> pastes never appear there, but anyone with the link can open them. Do not paste
           passwords, API keys or personal data.
         </p>
@@ -51,8 +59,8 @@ export function Privacy() {
       <section>
         <h2>Code runner</h2>
         <p>
-          Code you run executes only in your browser, inside a sandboxed frame with no access to this site, its storage or
-          your cookies. It is never sent to our servers.
+          Code you run executes only in your browser, inside an isolated sandbox with no access to this site, its storage
+          or your cookies, and it cannot open pop-ups or redirect the page. It is never sent to our servers.
         </p>
       </section>
     </InfoPage>
@@ -61,7 +69,7 @@ export function Privacy() {
 
 export function Terms() {
   return (
-    <InfoPage title="TERMS_OF_USE" subtitle="Short and simple">
+    <InfoPage title="Terms of use" subtitle="Short and simple">
       <section>
         <h2>Acceptable use</h2>
         <p>
@@ -84,7 +92,10 @@ export function Terms() {
       </section>
       <section>
         <h2>Limits</h2>
-        <p>Each paste can be up to 512&nbsp;KB and titles up to 200 characters.</p>
+        <p>
+          Each paste can be up to 512&nbsp;KB and titles up to 200 characters. The API allows 20 new pastes per 10 minutes
+          and 300 reads per minute per IP address; above that it answers <code>429 Too Many Requests</code>.
+        </p>
       </section>
     </InfoPage>
   );
@@ -133,21 +144,28 @@ const ENDPOINTS: { method: string; path: string; description: string; example: s
   },
 ];
 
+const METHOD_TONES: Record<string, string> = {
+  GET: 'bg-success-soft text-success',
+  POST: 'bg-accent-soft text-accent',
+  DELETE: 'bg-danger-soft text-danger',
+};
+
 export function ApiDocs() {
   return (
-    <InfoPage title="RAW_API" subtitle="Use Pestle from your terminal or scripts">
+    <InfoPage title="API" subtitle="Use Pestle from your terminal or scripts">
       <p>
         Everything the web app does is available as a JSON API. Responses are JSON unless you request <code>?raw=1</code>.
-        Errors return <code>{'{ "error": "..." }'}</code> with a 4xx/5xx status.
+        Errors return <code>{'{ "error": "..." }'}</code> with a 4xx/5xx status. <code>POST</code> requires{' '}
+        <code>content-type: application/json</code>. Rate limits: 20 creates / 10&nbsp;min and 300 reads / min per IP.
       </p>
       {ENDPOINTS.map((e) => (
-        <section key={e.method + e.path} className="border border-[#141414] bg-white">
-          <div className="flex items-center gap-3 px-4 py-2 border-b border-[#141414] bg-[#f8f8f7]">
-            <span className="px-2 py-0.5 bg-[#141414] text-[#E4E3E0] text-[10px] font-mono font-bold">{e.method}</span>
-            <span className="font-mono text-xs font-bold break-all">{e.path}</span>
+        <section key={e.method + e.path} className="overflow-hidden rounded-xl border border-line bg-surface shadow-card">
+          <div className="flex items-center gap-3 border-b border-line px-4 py-2.5">
+            <span className={`rounded-md px-2 py-0.5 font-mono text-[11px] font-bold ${METHOD_TONES[e.method] ?? ''}`}>{e.method}</span>
+            <span className="font-mono text-sm font-medium break-all">{e.path}</span>
           </div>
-          <p className="px-4 py-3 text-sm">{e.description}</p>
-          <pre className="mx-4 mb-4 p-3 bg-[#141414] text-[#E4E3E0] text-[11px] font-mono overflow-x-auto">{e.example}</pre>
+          <p className="px-4 py-3 text-sm text-muted">{e.description}</p>
+          <pre className="mx-4 mb-4 overflow-x-auto rounded-lg bg-console p-3 font-mono text-xs text-console-fg">{e.example}</pre>
         </section>
       ))}
     </InfoPage>
@@ -156,14 +174,14 @@ export function ApiDocs() {
 
 export function NotFound() {
   return (
-    <div className="h-[60vh] flex flex-col items-center justify-center gap-6">
-      <h2 className="text-6xl font-mono font-bold opacity-10">404_</h2>
-      <p className="font-mono text-sm uppercase tracking-widest font-bold">ROUTE_NOT_FOUND</p>
-      <Link
-        to="/"
-        className="px-6 py-2 border border-[#141414] text-[10px] font-mono uppercase tracking-widest hover:bg-[#141414] hover:text-[#E4E3E0] transition-colors"
-      >
-        RETURN_TO_ROOT
+    <div className="flex h-[55vh] flex-col items-center justify-center gap-4 text-center animate-fade-up">
+      <p className="font-mono text-7xl font-bold text-line-strong">404</p>
+      <div className="space-y-1">
+        <h1 className="text-xl font-semibold">Page not found</h1>
+        <p className="text-muted">The page you're looking for doesn't exist or was moved.</p>
+      </div>
+      <Link to="/" className={buttonClass('primary')}>
+        Back to home
       </Link>
     </div>
   );

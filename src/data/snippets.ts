@@ -9,11 +9,13 @@ export interface Snippet {
   code: string;
   /** Markup rendered under a CSS snippet when previewing it. */
   demo?: string;
+  /** Set when the snippet needs a real machine (servers, sockets): shows how to run it locally instead. */
+  runLocally?: string;
 }
 
 /**
- * Curated, working snippets. Every JavaScript / HTML / CSS entry runs as-is in the
- * in-browser runner and prints (or renders) its result.
+ * Curated, working snippets. Every JavaScript / Python / HTML / CSS entry runs as-is in the
+ * in-browser runner and prints (or renders) its result, except those marked `runLocally`.
  */
 export const SNIPPETS: Snippet[] = [
   {
@@ -624,8 +626,9 @@ export function useLocalStorage<T>(key: string, initial: T) {
   },
   {
     id: 'py-fastapi',
+    runLocally: 'pip install fastapi uvicorn && uvicorn main:app --reload',
     title: 'FastAPI REST API',
-    description: 'A working CRUD API in one file. Run: pip install fastapi uvicorn && uvicorn main:app --reload',
+    description: 'A working CRUD API in one file, with validation and proper status codes.',
     language: 'python',
     tags: ['api', 'backend'],
     code: `from fastapi import FastAPI, HTTPException
@@ -689,6 +692,7 @@ for region, total in sorted(totals.items()):
   },
   {
     id: 'py-scraper',
+    runLocally: 'python scraper.py',
     title: 'Fetch a web page title',
     description: 'Download a page and extract its <title> with only the standard library.',
     language: 'python',
@@ -776,8 +780,8 @@ MIT
   },
 ];
 
-/** Languages the in-browser runner can execute or preview. */
-export const RUNNABLE_LANGUAGES = ['javascript', 'html', 'css'] as const;
+/** Languages the in-browser runner can execute or preview (Python via Pyodide/WebAssembly). */
+export const RUNNABLE_LANGUAGES = ['javascript', 'python', 'html', 'css'] as const;
 
 export function isRunnable(language: string) {
   return (RUNNABLE_LANGUAGES as readonly string[]).includes(language);
