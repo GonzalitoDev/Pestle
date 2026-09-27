@@ -21,9 +21,13 @@ The `android/` folder is a [Capacitor](https://capacitorjs.com) app that bundles
 runner). It talks to the deployed site's API (`VITE_API_BASE`, default `https://pestesting.vercel.app`); with no
 connection, or if the site is unreachable, it works offline and keeps pastes on the phone.
 
-**Download:** every push builds the APK with GitHub Actions (`.github/workflows/android.yml`) and publishes it under
+**Download:** every push to `main` builds the APK with GitHub Actions (`.github/workflows/android.yml`) and publishes it under
 **Releases** → `Pestle.apk` (latest: `https://github.com/gonzalitodev/pestesting/releases/latest/download/Pestle.apk`).
 On the phone: open the APK and allow installing from that source when Android asks.
+
+The workflow only uses GitHub's own actions pinned to commit SHAs, so in **Settings → Actions → General** you can
+choose *Allow GitHub-created actions only*; its build job has a read-only token and only the release job can write
+(releases). The repository-wide "Workflow permissions" can stay on *Read repository contents*.
 
 **Updates install over the previous version only if every build is signed with the same key.** Create one once:
 
