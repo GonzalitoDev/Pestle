@@ -7,6 +7,7 @@ import { pasteService, resolveBackend } from '../lib/pasteService';
 import { Paste } from '../types';
 import { downloadText, formatDate } from '../lib/utils';
 import { isRunnable } from '../data/snippets';
+import { detectLanguage } from '../lib/detectLanguage';
 import CodeRunner from '../components/CodeRunner';
 
 export default function PasteView() {
@@ -115,7 +116,7 @@ export default function PasteView() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {isRunnable(paste.language) && (
+          {(isRunnable(paste.language) || isRunnable(detectLanguage(paste.content) ?? '')) && (
             <button
               onClick={() => setRunning(r => !r)}
               className="flex items-center gap-2 px-4 py-2 border border-[#141414] bg-green-100 text-[10px] font-mono font-bold uppercase tracking-widest hover:bg-[#141414] hover:text-[#E4E3E0] transition-all active:scale-95"

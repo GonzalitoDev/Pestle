@@ -5,6 +5,7 @@ import { pasteService } from '../lib/pasteService';
 import { EXPIRIES, Expiry, LANGUAGES, Language } from '../types';
 import { cn } from '../lib/utils';
 import { isRunnable } from '../data/snippets';
+import { detectLanguage } from '../lib/detectLanguage';
 import CodeRunner from '../components/CodeRunner';
 
 interface PrefillState {
@@ -42,6 +43,18 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const detected = detectLanguage(content);
+  const mismatch =
+    detected && detected !== language && !(detected === 'javascript' && language === 'typescript') ? detected : null;
+  const labelOf = (l: Language) => LANGUAGES.find((o) => o.value === l)?.label ?? l;
+
+  // Pasting code picks its language automatically, so it is highlighted and run correctly.
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    if (content.trim()) return;
+    const guess = detectLanguage(e.clipboardData.getData('text'));
+    if (guess) setLanguage(guess);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -87,6 +100,7 @@ export default function Home() {
               placeholder="// Paste your code or text here..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
+              onPaste={handlePaste}
               onKeyDown={handleKeyDown}
               spellCheck={false}
             />
@@ -95,6 +109,20 @@ export default function Home() {
               <span className="hidden sm:inline">CTRL+ENTER TO TRANSMIT · TAB INDENTS</span>
             </div>
           </div>
+
+          {mismatch && (
+            <div className="flex flex-wrap items-center justify-between gap-2 border border-blue-700 bg-blue-50 px-4 py-2 text-[11px] font-mono">
+              <span>
+                This looks like <strong>{labelOf(mismatch)}</strong>, but the language is set to {labelOf(language)}.
+              </span>
+              <button
+                onClick={() => setLanguage(mismatch)}
+                className="px-3 py-1 bg-blue-700 text-white uppercase tracking-widest text-[10px] hover:opacity-90"
+              >
+                Switch to {labelOf(mismatch)}
+              </button>
+            </div>
+          )}
 
           {isRunnable(language) && (
             running ? (

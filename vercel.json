@@ -31,7 +31,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "sandbox allow-scripts allow-forms; default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' https:; style-src 'unsafe-inline' https:; img-src https: data: blob:; font-src https: data:; media-src https: data: blob:; connect-src https:; form-action 'none'; base-uri 'none'; frame-ancestors 'self'"
+          "value": "sandbox allow-scripts allow-forms; default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https:; style-src 'unsafe-inline' https:; img-src https: data: blob:; font-src https: data:; media-src https: data: blob:; connect-src https:; form-action 'none'; base-uri 'none'; frame-ancestors 'self'"
         },
         { "key": "X-Frame-Options", "value": "SAMEORIGIN" },
         { "key": "Cache-Control", "value": "no-store" }

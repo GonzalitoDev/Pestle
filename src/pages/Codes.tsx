@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Check, Copy, Download, Library, Pencil, Play, Search } from 'lucide-react';
+import { Check, Copy, Download, Library, Pencil, Play, Search, Terminal } from 'lucide-react';
 import { SNIPPETS, Snippet, isRunnable } from '../data/snippets';
 import { LANGUAGES } from '../types';
 import CodeRunner from '../components/CodeRunner';
@@ -97,7 +97,7 @@ function SnippetCard({ snippet }: { snippet: Snippet }) {
   const navigate = useNavigate();
   const [running, setRunning] = useState(false);
   const [copied, setCopied] = useState(false);
-  const runnable = isRunnable(snippet.language);
+  const runnable = isRunnable(snippet.language) && !snippet.runLocally;
 
   const copy = async () => {
     await navigator.clipboard.writeText(snippet.code);
@@ -129,6 +129,13 @@ function SnippetCard({ snippet }: { snippet: Snippet }) {
           </div>
           <h2 className="font-mono font-bold text-lg tracking-tight">{snippet.title}</h2>
           <p className="text-sm opacity-70 max-w-2xl">{snippet.description}</p>
+          {snippet.runLocally && (
+            <p className="flex items-center gap-2 text-[11px] font-mono">
+              <Terminal size={12} className="shrink-0" />
+              <span className="opacity-60 uppercase">Needs a real machine · run locally:</span>
+              <code className="bg-white border border-[#141414]/10 px-1.5 py-0.5 break-all">{snippet.runLocally}</code>
+            </p>
+          )}
         </div>
         <div className="flex flex-wrap gap-2 shrink-0">
           {runnable && (

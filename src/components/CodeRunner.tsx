@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { Play, RotateCcw, X } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { detectLanguage } from '../lib/detectLanguage';
+import { isRunnable } from '../data/snippets';
+
+/** Python runs in the browser via Pyodide (CPython compiled to WebAssembly), inside the sandbox. */
+export const PYODIDE_URL = 'https://cdn.jsdelivr.net/pyodide/v314.0.7/full/';
 
 interface LogLine {
   type: 'log' | 'info' | 'warn' | 'error';
@@ -47,7 +52,43 @@ const CONSOLE_BRIDGE = `<script>
 
 const escapeScript = (code: string) => code.replace(/<\/script/gi, '<\\/script');
 
+/** Serializes a string into a JS literal that is safe to embed inside an inline <script>. */
+const jsLiteral = (value: string) =>
+  JSON.stringify(value).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
+
+const PYTHON_BOOT = `(async function () {
+  console.info('Loading Python… (the first run downloads the runtime, ~10 MB)');
+  var code = __CODE__;
+  var py;
+  try {
+    py = await loadPyodide({
+      indexURL: __INDEX__,
+      stdout: function (s) { console.log(s); },
+      stderr: function (s) { console.error(s); },
+      stdin: function () { return null; },
+    });
+    await py.loadPackagesFromImports(code, { messageCallback: function () {}, errorCallback: function () {} });
+  } catch (e) {
+    console.error('Could not load Python: ' + (e && e.message ? e.message : e));
+    return;
+  }
+  try {
+    await py.runPythonAsync(code);
+  } catch (e) {
+    var lines = String(e && e.message ? e.message : e).trim().split('\\n');
+    var start = lines.findIndex(function (l) { return l.indexOf('File "<exec>"') !== -1; });
+    console.error((start > 0 ? ['Traceback (most recent call last):'].concat(lines.slice(start)) : lines.slice(-6)).join('\\n'));
+    if (/ModuleNotFoundError/.test(String(e))) {
+      console.warn('This package is not available in the browser. Run it locally with: python script.py');
+    }
+  }
+})();`;
+
 export function buildDocument(code: string, language: string, demo?: string) {
+  if (language === 'python') {
+    const boot = PYTHON_BOOT.replace('__CODE__', () => jsLiteral(code)).replace('__INDEX__', () => jsLiteral(PYODIDE_URL));
+    return `<!doctype html><html><body>${CONSOLE_BRIDGE}<script src="${PYODIDE_URL}pyodide.js"></script><script>${boot}</script></body></html>`;
+  }
   if (language === 'javascript') {
     return `<!doctype html><html><body>${CONSOLE_BRIDGE}<script type="module">\n${escapeScript(code)}\n</script></body></html>`;
   }
@@ -71,7 +112,14 @@ export default function CodeRunner({ code, language, demo, onClose }: CodeRunner
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [logs, setLogs] = useState<LogLine[]>([]);
   const [runId, setRunId] = useState(0);
-  const showsPreview = language !== 'javascript';
+  // Code saved under the wrong language (e.g. Python pasted while "JavaScript" was selected)
+  // runs with the interpreter it actually needs.
+  const detected = detectLanguage(code);
+  const effectiveLanguage =
+    detected && ((language === 'javascript' && detected === 'python') || (!isRunnable(language) && isRunnable(detected)))
+      ? detected
+      : language;
+  const showsPreview = effectiveLanguage === 'html' || effectiveLanguage === 'css';
   // Debounce so live editing does not re-execute on every keystroke.
   const [debouncedCode, setDebouncedCode] = useState(code);
   useEffect(() => {
@@ -80,7 +128,7 @@ export default function CodeRunner({ code, language, demo, onClose }: CodeRunner
   }, [code]);
 
   const documentRef = useRef('');
-  documentRef.current = buildDocument(debouncedCode, language, demo);
+  documentRef.current = buildDocument(debouncedCode, effectiveLanguage, demo);
 
   useEffect(() => {
     const onMessage = (e: MessageEvent) => {
@@ -129,6 +177,11 @@ export default function CodeRunner({ code, language, demo, onClose }: CodeRunner
       <p className="px-4 py-1.5 text-[9px] font-mono uppercase tracking-widest bg-yellow-50 border-b border-[#141414]/10 opacity-80">
         Isolated sandbox · this code cannot read your Pestle data, cookies or storage
       </p>
+      {effectiveLanguage !== language && (
+        <p className="px-4 py-1.5 text-[10px] font-mono uppercase tracking-widest bg-blue-50 border-b border-[#141414]/10">
+          Detected {effectiveLanguage} code · running it with {effectiveLanguage === 'python' ? 'Python' : effectiveLanguage}
+        </p>
+      )}
 
       <iframe
         key={`${runId}-${debouncedCode}`}
