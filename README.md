@@ -15,6 +15,35 @@ A fast pastebin for sharing code snippets with syntax highlighting, ready to dep
 - Raw endpoint `GET /api/pastes/:id?raw=1` and full API docs at `/api-docs`
 
 
+## Android app (APK)
+
+The `android/` folder is a [Capacitor](https://capacitorjs.com) app that bundles the whole UI (editor, library, code
+runner). It talks to the deployed site's API (`VITE_API_BASE`, default `https://pestle-app.vercel.app`); with no
+connection, or if the site is unreachable, it works offline and keeps pastes on the phone.
+
+**Download:** every push builds the APK with GitHub Actions (`.github/workflows/android.yml`) and publishes it under
+**Releases** → `Pestle.apk` (latest: `https://github.com/gonzalitodev/pestesting/releases/latest/download/Pestle.apk`).
+On the phone: open the APK and allow installing from that source when Android asks.
+
+**Updates install over the previous version only if every build is signed with the same key.** Create one once:
+
+```bash
+keytool -genkeypair -v -keystore pestle.jks -alias pestle -keyalg RSA -keysize 4096 -validity 10000
+base64 -w0 pestle.jks   # copy the output
+```
+
+Then add these repository secrets (Settings → Secrets and variables → Actions): `ANDROID_KEYSTORE_BASE64`,
+`ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` (`pestle`), `ANDROID_KEY_PASSWORD`. Keep `pestle.jks` private and
+backed up. Without these secrets the workflow still builds a debug-signed APK, but you must uninstall the old app
+before installing a new build. To point the app at another backend, set the `PESTLE_API_URL` repository variable.
+
+Build locally (needs Android Studio / the Android SDK and JDK 21):
+
+```bash
+npm run build && npx cap sync android
+cd android && ./gradlew assembleDebug   # app/build/outputs/apk/debug/app-debug.apk
+```
+
 ## Security
 
 - **Strict Content-Security-Policy** on the app (`script-src 'self'`, no inline scripts), plus HSTS, `nosniff`,
@@ -28,6 +57,8 @@ A fast pastebin for sharing code snippets with syntax highlighting, ready to dep
   keyed hash that expires with the window.
 - **Ownership**: the browser's owner id acts as a secret; the server stores only an HMAC of it, and only the creator
   can delete a paste. Paste ids are 12 unbiased base62 characters (~71 bits), so unlisted links can't be guessed.
+- **Android app**: no cloud backups of app data, cleartext traffic disabled, WebView debugging off; the API only
+  accepts cross-origin calls from the app's own origin (`https://localhost`, configurable with `CORS_ORIGINS`).
 - Dependencies audited (`npm audit`); only a low-severity dev-server issue on Windows remains.
 
 ## Run locally

@@ -1,4 +1,4 @@
-import { json, redis, safe } from './_lib/store.js';
+import { json, preflight, redis, safe } from './_lib/store.js';
 
 export const GET = safe(async () => {
   if (!redis) return json({ ok: true, storage: false });
@@ -9,3 +9,5 @@ export const GET = safe(async () => {
     return json({ ok: false, storage: false }, 503);
   }
 });
+
+export const OPTIONS = preflight;

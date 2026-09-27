@@ -6,7 +6,7 @@ import { LANGUAGES } from '../types';
 import CodeRunner from '../components/CodeRunner';
 import CodeBlock from '../components/CodeBlock';
 import { Button, Card, EmptyState, Kbd, LanguageBadge, PageHeader } from '../components/ui';
-import { cn, downloadText } from '../lib/utils';
+import { cn, copyText, downloadText } from '../lib/utils';
 import { useToast } from '../components/Toast';
 
 const COLLAPSED_LINES = 16;
@@ -137,7 +137,7 @@ function SnippetCard({ snippet, onTag }: { snippet: Snippet; onTag: (tag: string
   const runnable = isRunnable(snippet.language) && !snippet.runLocally;
 
   const copy = async () => {
-    await navigator.clipboard.writeText(snippet.code);
+    await copyText(snippet.code);
     setCopied(true);
     toast(`Copied “${snippet.title}”`);
     setTimeout(() => setCopied(false), 2000);
@@ -194,7 +194,11 @@ function SnippetCard({ snippet, onTag }: { snippet: Snippet; onTag: (tag: string
               variant="ghost"
               icon={Download}
               aria-label={`Download ${snippet.title}`}
-              onClick={() => downloadText(snippet.code, snippet.id, snippet.language)}
+              onClick={() =>
+                downloadText(snippet.code, snippet.id, snippet.language)
+                  .then((where) => where && toast(`Saved to ${where}`))
+                  .catch((err) => toast(`Could not save: ${err instanceof Error ? err.message : err}`, 'error'))
+              }
             />
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { isNative } from './platform';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -26,17 +27,45 @@ const EXTENSIONS: Record<string, string> = {
   text: 'txt',
 };
 
-/** Save text as a file with the right extension for its language. */
-export function downloadText(content: string, name: string, language: string) {
+/**
+ * Save text as a file with the right extension for its language. On the web it triggers a
+ * download; in the Android app (where WebView downloads don't work) it writes to Documents.
+ * Resolves with a human-readable location on Android, undefined on the web.
+ */
+export async function downloadText(content: string, name: string, language: string): Promise<string | undefined> {
+  const fileName = `${name.replace(/[^\w.-]+/g, '_') || 'snippet'}.${EXTENSIONS[language] ?? 'txt'}`;
+  if (isNative) {
+    const { Filesystem, Directory, Encoding } = await import('@capacitor/filesystem');
+    await Filesystem.writeFile({ path: `Pestle/${fileName}`, data: content, directory: Directory.Documents, encoding: Encoding.UTF8, recursive: true });
+    return `Documents/Pestle/${fileName}`;
+  }
   const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${name.replace(/[^\w.-]+/g, '_') || 'snippet'}.${EXTENSIONS[language] ?? 'txt'}`;
+  a.download = fileName;
   document.body.appendChild(a);
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
+  return undefined;
+}
+
+/** Clipboard write with a fallback for WebViews/browsers where the async Clipboard API is unavailable. */
+export async function copyText(text: string) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const el = document.createElement('textarea');
+    el.value = text;
+    el.setAttribute('readonly', '');
+    el.style.position = 'fixed';
+    el.style.opacity = '0';
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    el.remove();
+  }
 }
 
 /** "3 minutes ago", "in 2 days"… */

@@ -11,6 +11,7 @@ import {
   ownerHashFrom,
   ownerKey,
   pasteKey,
+  preflight,
   rateLimit,
   redis,
   safe,
@@ -115,3 +116,5 @@ export const POST = safe(async (request) => {
 
   return json(toPublic(paste, ownerHash), 201);
 });
+
+export const OPTIONS = preflight;

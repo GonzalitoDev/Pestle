@@ -103,15 +103,46 @@ export async function rateLimit(request: Request, bucket: string, limit: number,
   return json({ error: 'Too many requests. Try again later.' }, 429, { 'retry-after': String(retryAfter) });
 }
 
-/** Wraps a handler so unexpected errors return a generic 500 instead of internal details. */
+/**
+ * Cross-origin callers allowed to use the API: only the Pestle Android app (Capacitor serves it
+ * from https://localhost). Browsers on other sites get no CORS headers, so they can't read
+ * responses or send the custom x-owner-id header. Override with CORS_ORIGINS (comma-separated).
+ */
+const CORS_ORIGINS = new Set(
+  (process.env.CORS_ORIGINS || 'https://localhost,capacitor://localhost').split(',').map((o) => o.trim()).filter(Boolean)
+);
+
+function corsHeaders(request: Request): Record<string, string> {
+  const origin = request.headers.get('origin');
+  if (!origin || !CORS_ORIGINS.has(origin)) return {};
+  return {
+    'access-control-allow-origin': origin,
+    'access-control-allow-methods': 'GET, POST, DELETE, OPTIONS',
+    'access-control-allow-headers': 'content-type, x-owner-id',
+    'access-control-max-age': '86400',
+    vary: 'Origin',
+  };
+}
+
+/** Answers CORS preflight requests (export as OPTIONS from each API route). */
+export const preflight = async (request: Request) =>
+  new Response(null, { status: 204, headers: { ...API_HEADERS, ...corsHeaders(request) } });
+
+/**
+ * Wraps a handler so unexpected errors return a generic 500 instead of internal details, and
+ * adds CORS headers for the Android app.
+ */
 export function safe(handler: (request: Request) => Promise<Response>) {
   return async (request: Request) => {
+    let response: Response;
     try {
-      return await handler(request);
+      response = await handler(request);
     } catch (err) {
       console.error(err);
-      return json({ error: 'Internal error' }, 500);
+      response = json({ error: 'Internal error' }, 500);
     }
+    for (const [key, value] of Object.entries(corsHeaders(request))) response.headers.set(key, value);
+    return response;
   };
 }
 

@@ -26,6 +26,8 @@ import CodeRunner from '../components/CodeRunner';
 import CodeBlock from '../components/CodeBlock';
 import { Badge, Button, Card, EmptyState, LanguageBadge, Spinner, buttonClass } from '../components/ui';
 import { useToast } from '../components/Toast';
+import { API_BASE, isNative, shareUrl } from '../lib/platform';
+import { copyText } from '../lib/utils';
 
 export default function PasteView() {
   const { id } = useParams<{ id: string }>();
@@ -67,13 +69,19 @@ export default function PasteView() {
 
   const copyContent = async () => {
     if (!paste) return;
-    await navigator.clipboard.writeText(paste.content);
+    await copyText(paste.content);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   const copyLink = async () => {
-    await navigator.clipboard.writeText(window.location.href);
+    const url = shareUrl(`/paste/${paste!.id}`);
+    if (isNative) {
+      const { Share } = await import('@capacitor/share');
+      await Share.share({ title: paste!.title || 'Pestle paste', url }).catch(() => {});
+      return;
+    }
+    await copyText(url);
     toast('Link copied to clipboard');
   };
 
@@ -148,16 +156,23 @@ export default function PasteView() {
           </Button>
         )}
         <Button icon={Link2} onClick={copyLink}>
-          Copy link
+          {isNative ? 'Share link' : 'Copy link'}
         </Button>
         <Button icon={GitFork} onClick={forkPaste}>
           Fork
         </Button>
-        <Button icon={Download} onClick={() => downloadText(paste.content, paste.title || `paste-${paste.id}`, paste.language)}>
+        <Button
+          icon={Download}
+          onClick={() =>
+            downloadText(paste.content, paste.title || `paste-${paste.id}`, paste.language)
+              .then((where) => where && toast(`Saved to ${where}`))
+              .catch((err) => toast(`Could not save: ${err instanceof Error ? err.message : err}`, 'error'))
+          }
+        >
           Download
         </Button>
         {!isMock && (
-          <a href={`/api/pastes/${paste.id}?raw=1`} target="_blank" rel="noreferrer" className={buttonClass()}>
+          <a href={`${API_BASE}/api/pastes/${paste.id}?raw=1`} target="_blank" rel="noreferrer" className={buttonClass()}>
             <FileText className="size-4" aria-hidden /> Raw
           </a>
         )}

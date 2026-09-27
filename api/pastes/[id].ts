@@ -6,6 +6,7 @@ import {
   ownerHashFrom,
   ownerKey,
   pasteKey,
+  preflight,
   rateLimit,
   redis,
   safe,
@@ -55,3 +56,5 @@ export const DELETE = safe(async (request) => {
   await tx.exec();
   return new Response(null, { status: 204, headers: API_HEADERS });
 });
+
+export const OPTIONS = preflight;

@@ -1,4 +1,5 @@
 import { NewPaste, Paste } from '../types';
+import { API_BASE } from './platform';
 
 const LOCAL_STORAGE_KEY = 'pestle_mock_pastes';
 const OWNER_ID_KEY = 'pestle_owner_id';
@@ -85,7 +86,7 @@ function readLocal(): Paste[] {
 
 /** Vercel Functions backed by Upstash Redis (see /api). */
 async function api(path: string, init: RequestInit = {}) {
-  const res = await fetch(`/api${path}`, {
+  const res = await fetch(`${API_BASE}/api${path}`, {
     ...init,
     headers: { 'content-type': 'application/json', 'x-owner-id': getOwnerId(), ...init.headers },
   });
@@ -122,7 +123,8 @@ let backendPromise: Promise<{ backend: PasteBackend; isMock: boolean }> | null =
 
 /** Probe /api/health once to decide between the real backend and the LocalStorage fallback. */
 export function resolveBackend() {
-  backendPromise ??= fetch('/api/health')
+  // Short timeout so the app starts in offline mode quickly when there is no connection.
+  backendPromise ??= fetch(`${API_BASE}/api/health`, { signal: AbortSignal.timeout(6000) })
     .then((res) => res.json())
     .then((health) => (health.storage ? { backend: remoteDb, isMock: false } : { backend: localDb, isMock: true }))
     .catch(() => ({ backend: localDb, isMock: true }));

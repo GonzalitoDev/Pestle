@@ -8,6 +8,7 @@ import { Terminal, Plus, FolderOpen, Github, Globe, Library, Menu, X, Sun, Moon,
 import { useEffect, useState } from 'react';
 import { resolveBackend } from './lib/pasteService';
 import { ThemePreference, useTheme } from './lib/theme';
+import { initNative, syncSystemBars } from './lib/native';
 import { cn } from './lib/utils';
 import { ToastProvider } from './components/Toast';
 import Home from './pages/Home';
@@ -65,9 +66,16 @@ export default function App() {
   const [isMock, setIsMock] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
+  const { resolved } = useTheme();
+
   useEffect(() => {
     resolveBackend().then((b) => setIsMock(b.isMock));
+    initNative();
   }, []);
+
+  useEffect(() => {
+    syncSystemBars(resolved);
+  }, [resolved]);
 
   const desktopLink = ({ isActive }: { isActive: boolean }) =>
     cn(
@@ -82,7 +90,9 @@ export default function App() {
         <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] rounded-lg bg-surface px-4 py-2 shadow-card">
           Skip to content
         </a>
-        <div className="min-h-screen flex flex-col">
+        {/* Solid backdrop behind the Android status bar (height is 0 on the web). */}
+        <div aria-hidden className="fixed inset-x-0 top-0 z-[60] h-[var(--safe-top)] bg-bg" />
+        <div className="min-h-screen flex flex-col pt-[var(--safe-top)] pb-[var(--safe-bottom)] pl-[var(--safe-left)] pr-[var(--safe-right)]">
           {isMock && (
             <div className="flex items-center justify-center gap-2 border-b border-warn/20 bg-warn-soft px-4 py-1.5 text-xs text-warn">
               <AlertTriangle className="size-3.5 shrink-0" aria-hidden />
@@ -90,7 +100,7 @@ export default function App() {
             </div>
           )}
 
-          <nav className="sticky top-0 z-50 border-b border-line bg-bg/80 backdrop-blur-md" aria-label="Main">
+          <nav className="sticky top-[var(--safe-top)] z-50 border-b border-line bg-bg/80 backdrop-blur-md" aria-label="Main">
             <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
               <div className="flex items-center gap-6">
                 <Link to="/" className="flex items-center gap-2 font-semibold tracking-tight" aria-label="Pestle home">

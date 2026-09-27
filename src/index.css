@@ -7,6 +7,11 @@
  * Theme selection: <html data-theme="light|dark">; without it we follow the OS setting.
  */
 :root {
+  /* Safe areas: Capacitor's SystemBars injects --safe-area-inset-*; browsers provide env(). */
+  --safe-top: max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px));
+  --safe-bottom: max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px));
+  --safe-left: max(env(safe-area-inset-left, 0px), var(--safe-area-inset-left, 0px));
+  --safe-right: max(env(safe-area-inset-right, 0px), var(--safe-area-inset-right, 0px));
   color-scheme: light;
   --bg: #f7f7f5;
   --surface: #ffffff;
