@@ -9,7 +9,7 @@ import { useEffect, useState } from 'react';
 import { resolveBackend } from './lib/pasteService';
 import { ThemePreference, useTheme } from './lib/theme';
 import { initNative, syncSystemBars } from './lib/native';
-import { APK_URL, isNative } from './lib/platform';
+import ApkLink from './components/ApkLink';
 import { cn } from './lib/utils';
 import { ToastProvider } from './components/Toast';
 import Home from './pages/Home';
@@ -120,16 +120,9 @@ export default function App() {
               </div>
 
               <div className="flex items-center gap-1">
-                {!isNative && (
-                  <a
-                    href={APK_URL}
-                    rel="noopener"
-                    className="hidden sm:inline-flex h-9 items-center gap-2 rounded-lg border border-line bg-surface px-3 text-sm font-medium hover:border-line-strong hover:bg-surface-2 transition-colors mr-1"
-                    title="Download the Android app (APK)"
-                  >
-                    <Smartphone className="size-4 text-success" aria-hidden /> Get the app
-                  </a>
-                )}
+                <ApkLink className="hidden sm:inline-flex h-9 items-center gap-2 rounded-lg border border-line bg-surface px-3 text-sm font-medium hover:border-line-strong hover:bg-surface-2 transition-colors mr-1">
+                  <Smartphone className="size-4 text-success" aria-hidden /> Get the app
+                </ApkLink>
                 <ThemeToggle />
                 <a
                   href={REPO_URL}
@@ -168,11 +161,9 @@ export default function App() {
                     <Icon className="size-4" aria-hidden /> {label}
                   </NavLink>
                 ))}
-                {!isNative && (
-                  <a href={APK_URL} rel="noopener" className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-success">
-                    <Smartphone className="size-4" aria-hidden /> Download Android app (APK)
-                  </a>
-                )}
+                <ApkLink className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-success">
+                  <Smartphone className="size-4" aria-hidden /> Download Android app (APK)
+                </ApkLink>
                 <a href={REPO_URL} target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted hover:text-fg">
                   <Github className="size-4" aria-hidden /> Source code
                 </a>

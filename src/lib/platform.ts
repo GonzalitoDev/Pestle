@@ -18,8 +18,17 @@ export function shareUrl(path: string) {
 }
 
 /**
- * Latest Android build, published by .github/workflows/android.yml as a GitHub Release asset.
- * Override with VITE_APK_URL (e.g. to host the APK elsewhere).
+ * The Android app, built by Vercel on every deploy (scripts/build-apk.sh) and served from this
+ * same site. Override with VITE_APK_URL to host it elsewhere.
  */
-export const APK_URL =
-  import.meta.env.VITE_APK_URL || 'https://github.com/GonzalitoDev/pestesting/releases/latest/download/Pestle.apk';
+export const APK_URL = import.meta.env.VITE_APK_URL || '/Pestle.apk';
+
+let apkCheck: Promise<boolean> | null = null;
+
+/** Whether the APK is actually published (the SPA fallback would otherwise answer with HTML). */
+export function isApkAvailable() {
+  apkCheck ??= fetch(APK_URL, { method: 'HEAD', cache: 'no-store' })
+    .then((res) => res.ok && !(res.headers.get('content-type') ?? '').includes('text/html'))
+    .catch(() => false);
+  return apkCheck;
+}
