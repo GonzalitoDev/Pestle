@@ -7,9 +7,9 @@ name: Android APK
 # - The build job has a read-only token; only the small release job can write, and only releases.
 # - Signing secrets (optional) are exposed to the Gradle step only.
 
+# The APK is normally built by Vercel and served from the site (/Pestle.apk); this workflow is
+# an optional manual alternative that publishes it as a GitHub Release.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:

@@ -8,7 +8,8 @@ import { detectLanguage } from '../lib/detectLanguage';
 import CodeRunner from '../components/CodeRunner';
 import { Button, Card, Field, Kbd, Segmented, Select, buttonClass } from '../components/ui';
 import { useToast } from '../components/Toast';
-import { APK_URL, isNative } from '../lib/platform';
+import { isNative } from '../lib/platform';
+import ApkLink from '../components/ApkLink';
 
 interface PrefillState {
   title?: string;
@@ -212,9 +213,12 @@ export default function Home() {
                   <p className="text-muted">Editor, library and runner on your phone. Works offline too.</p>
                 </div>
               </div>
-              <a href={APK_URL} rel="noopener" className={buttonClass('success', 'md', 'w-full')}>
+              <ApkLink
+                className={buttonClass('success', 'md', 'w-full')}
+                fallback={<p className="rounded-lg bg-surface-2 px-3 py-2 text-center text-sm text-muted">The Android app is being built. Check back soon.</p>}
+              >
                 <Download className="size-4" aria-hidden /> Download APK
-              </a>
+              </ApkLink>
               <p className="text-xs text-muted">Android 7 or newer. When Android asks, allow installing from this source.</p>
             </Card>
           )}
