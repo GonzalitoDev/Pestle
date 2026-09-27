@@ -1,14 +1,31 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Calendar, User, Code2, Copy, Check, Download, Share2, Trash2, FileText, Timer, Play, GitFork, Link2 } from 'lucide-react';
+import {
+  Calendar,
+  User,
+  Code2,
+  Copy,
+  Check,
+  Download,
+  Trash2,
+  FileText,
+  Timer,
+  Play,
+  GitFork,
+  Link2,
+  Globe,
+  FileQuestion,
+  X,
+} from 'lucide-react';
 import { pasteService, resolveBackend } from '../lib/pasteService';
 import { Paste } from '../types';
-import { downloadText, formatDate } from '../lib/utils';
+import { downloadText, formatDate, timeAgo } from '../lib/utils';
 import { isRunnable } from '../data/snippets';
 import { detectLanguage } from '../lib/detectLanguage';
 import CodeRunner from '../components/CodeRunner';
+import CodeBlock from '../components/CodeBlock';
+import { Badge, Button, Card, EmptyState, LanguageBadge, Spinner, buttonClass } from '../components/ui';
+import { useToast } from '../components/Toast';
 
 export default function PasteView() {
   const { id } = useParams<{ id: string }>();
@@ -17,13 +34,17 @@ export default function PasteView() {
   const [copied, setCopied] = useState(false);
   const [isMock, setIsMock] = useState(true);
   const [running, setRunning] = useState(false);
-  const [linkCopied, setLinkCopied] = useState(false);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const navigate = useNavigate();
+  const toast = useToast();
 
   useEffect(() => {
-    resolveBackend().then(b => setIsMock(b.isMock));
+    resolveBackend().then((b) => setIsMock(b.isMock));
     if (id) {
-      pasteService.getPaste(id)
+      setLoading(true);
+      pasteService
+        .getPaste(id)
         .then(setPaste)
         .catch(() => setPaste(null))
         .finally(() => setLoading(false));
@@ -31,190 +52,146 @@ export default function PasteView() {
   }, [id]);
 
   const deletePaste = async () => {
-    if (!paste || !confirm('Purge this paste permanently?')) return;
+    if (!paste) return;
+    setDeleting(true);
     try {
       await pasteService.deletePaste(paste.id);
+      toast('Paste deleted');
       navigate('/dashboard');
     } catch (err) {
-      alert(`Failed to delete paste: ${err instanceof Error ? err.message : err}`);
+      toast(`Could not delete: ${err instanceof Error ? err.message : err}`, 'error');
+      setDeleting(false);
+      setConfirmingDelete(false);
     }
   };
 
-  const copyToClipboard = () => {
-    if (paste) {
-      navigator.clipboard.writeText(paste.content);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
+  const copyContent = async () => {
+    if (!paste) return;
+    await navigator.clipboard.writeText(paste.content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
-  const downloadPaste = () => {
-    if (paste) downloadText(paste.content, paste.title || `paste-${paste.id}`, paste.language);
-  };
-
-  const copyLink = () => {
-    navigator.clipboard.writeText(window.location.href);
-    setLinkCopied(true);
-    setTimeout(() => setLinkCopied(false), 2000);
+  const copyLink = async () => {
+    await navigator.clipboard.writeText(window.location.href);
+    toast('Link copied to clipboard');
   };
 
   const forkPaste = () => {
-    if (paste) {
-      navigate('/', {
-        state: { title: paste.title ? `${paste.title} (fork)` : undefined, content: paste.content, language: paste.language },
-      });
-    }
+    if (!paste) return;
+    navigate('/', {
+      state: { title: paste.title ? `${paste.title} (fork)` : undefined, content: paste.content, language: paste.language },
+    });
   };
 
   if (loading) {
     return (
-      <div className="h-[60vh] flex flex-col items-center justify-center gap-4 animate-pulse">
-        <div className="w-12 h-12 border-4 border-[#141414] border-t-transparent rounded-full animate-spin" />
-        <p className="text-xs font-mono uppercase tracking-widest">RETRIEVING_DATA_STREAM...</p>
+      <div className="flex h-[50vh] flex-col items-center justify-center gap-3 text-muted">
+        <Spinner />
+        <p className="text-sm">Loading paste…</p>
       </div>
     );
   }
 
   if (!paste) {
     return (
-      <div className="h-[60vh] flex flex-col items-center justify-center gap-6">
-        <h2 className="text-6xl font-mono font-bold opacity-10">404_</h2>
-        <div className="text-center space-y-2">
-          <p className="font-mono text-sm uppercase tracking-widest font-bold">DATA_NOT_FOUND</p>
-          <p className="font-mono text-[10px] opacity-40 uppercase">The requested resource has been purged or never existed.</p>
-        </div>
-        <Link to="/" className="px-6 py-2 border border-[#141414] text-[10px] font-mono uppercase tracking-widest hover:bg-[#141414] hover:text-[#E4E3E0] transition-colors">
-          RETURN_TO_ROOT
-        </Link>
-      </div>
+      <EmptyState
+        icon={FileQuestion}
+        title="Paste not found"
+        description="It may have expired, been deleted by its author, or the link is wrong."
+        action={
+          <Link to="/" className={buttonClass('primary')}>
+            Create a new paste
+          </Link>
+        }
+      />
     );
   }
 
-  return (
-    <div className="space-y-6 animate-in fade-in duration-1000">
-      <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b border-[#141414] pb-6">
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <span className="px-2 py-0.5 bg-[#141414] text-[#E4E3E0] text-[9px] font-mono font-bold uppercase tracking-widest">
-              {paste.language}
-            </span>
-            <span className="text-[9px] font-mono font-bold opacity-40 uppercase tracking-widest">
-              ID: {id}
-            </span>
-          </div>
-          <h1 className="text-4xl font-mono font-bold tracking-tight uppercase underline decoration-2 underline-offset-8">
-            {paste.title || 'UNTITLED_RECORD'}
-          </h1>
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-[10px] font-mono opacity-50 uppercase tracking-widest">
-            <div className="flex items-center gap-1.5"><Calendar size={12} /> {formatDate(paste.createdAt)}</div>
-            <div className="flex items-center gap-1.5"><User size={12} /> {paste.isOwner ? 'YOU' : paste.author ? `OPERATOR_${paste.author.substring(0, 5).toUpperCase()}` : 'ANONYMOUS_SIGNAL'}</div>
-            <div className="flex items-center gap-1.5"><Code2 size={12} /> {paste.content.split('\n').length} LINES</div>
-            {paste.expiresAt && (
-              <div className="flex items-center gap-1.5"><Timer size={12} /> EXPIRES {formatDate(paste.expiresAt)}</div>
-            )}
-          </div>
-        </div>
+  const lines = paste.content.split('\n').length;
+  const canRun = isRunnable(paste.language) || isRunnable(detectLanguage(paste.content) ?? '');
 
+  return (
+    <div className="space-y-6 animate-fade-up">
+      <header className="space-y-4">
         <div className="flex flex-wrap items-center gap-2">
-          {(isRunnable(paste.language) || isRunnable(detectLanguage(paste.content) ?? '')) && (
-            <button
-              onClick={() => setRunning(r => !r)}
-              className="flex items-center gap-2 px-4 py-2 border border-[#141414] bg-green-100 text-[10px] font-mono font-bold uppercase tracking-widest hover:bg-[#141414] hover:text-[#E4E3E0] transition-all active:scale-95"
-            >
-              <Play size={14} />
-              {running ? 'HIDE_RUN' : 'RUN'}
-            </button>
+          <LanguageBadge language={paste.language} />
+          <Badge tone={paste.isPublic ? 'accent' : 'neutral'}>
+            {paste.isPublic ? <Globe className="size-3" /> : <Link2 className="size-3" />}
+            {paste.isPublic ? 'Public' : 'Unlisted'}
+          </Badge>
+          {paste.expiresAt && (
+            <Badge tone="warn">
+              <Timer className="size-3" /> Expires {timeAgo(paste.expiresAt)}
+            </Badge>
           )}
-          <button
-            onClick={forkPaste}
-            className="flex items-center gap-2 px-4 py-2 border border-[#141414] bg-white text-[10px] font-mono font-bold uppercase tracking-widest hover:bg-[#141414] hover:text-[#E4E3E0] transition-all active:scale-95"
-          >
-            <GitFork size={14} />
-            FORK
-          </button>
-          {!isMock && (
-            <a
-              href={`/api/pastes/${paste.id}?raw=1`}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-2 px-4 py-2 border border-[#141414] bg-white text-[10px] font-mono font-bold uppercase tracking-widest hover:bg-[#141414] hover:text-[#E4E3E0] transition-all active:scale-95"
-            >
-              <FileText size={14} />
-              RAW
-            </a>
-          )}
-          {paste.isOwner && (
-            <button
-              onClick={deletePaste}
-              className="flex items-center gap-2 px-4 py-2 border border-red-700 bg-white text-red-700 text-[10px] font-mono font-bold uppercase tracking-widest hover:bg-red-700 hover:text-white transition-all active:scale-95"
-            >
-              <Trash2 size={14} />
-              PURGE
-            </button>
-          )}
-          <button 
-            onClick={copyToClipboard}
-            className="flex items-center gap-2 px-4 py-2 border border-[#141414] bg-white text-[10px] font-mono font-bold uppercase tracking-widest hover:bg-[#141414] hover:text-[#E4E3E0] transition-all active:scale-95"
-          >
-            {copied ? <Check size={14} /> : <Copy size={14} />}
-            {copied ? 'COPIED' : 'COPY_RAW'}
-          </button>
-          <button 
-            onClick={downloadPaste}
-            className="flex items-center gap-2 px-4 py-2 border border-[#141414] bg-[#141414] text-[#E4E3E0] text-[10px] font-mono font-bold uppercase tracking-widest hover:opacity-90 transition-all active:scale-95"
-          >
-            <Download size={14} />
-            DOWNLOAD
-          </button>
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight break-words">{paste.title || 'Untitled paste'}</h1>
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm text-muted">
+          <span className="flex items-center gap-1.5" title={formatDate(paste.createdAt)}>
+            <Calendar className="size-4" aria-hidden /> {timeAgo(paste.createdAt)}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <User className="size-4" aria-hidden />
+            {paste.isOwner ? 'You' : paste.author ? `Anonymous #${paste.author.substring(0, 5)}` : 'Anonymous'}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Code2 className="size-4" aria-hidden /> {lines} {lines === 1 ? 'line' : 'lines'}
+          </span>
         </div>
       </header>
 
-      <div className="border border-[#141414] bg-white overflow-hidden shadow-[8px_8px_0px_0px_rgba(20,20,20,1)]">
-        <SyntaxHighlighter
-          language={paste.language}
-          style={vs}
-          customStyle={{
-            margin: 0,
-            padding: '2rem',
-            background: 'white',
-            fontSize: '13px',
-            lineHeight: '1.6',
-            fontFamily: 'JetBrains Mono, monospace',
-          }}
-          showLineNumbers={true}
-          lineNumberStyle={{ opacity: 0.2, minWidth: '3em', paddingRight: '1em' }}
-        >
-          {paste.content}
-        </SyntaxHighlighter>
+      <div className="flex flex-wrap items-center gap-2" role="toolbar" aria-label="Paste actions">
+        {canRun && (
+          <Button variant="success" icon={running ? X : Play} onClick={() => setRunning((r) => !r)}>
+            {running ? 'Hide output' : 'Run'}
+          </Button>
+        )}
+        <Button icon={Link2} onClick={copyLink}>
+          Copy link
+        </Button>
+        <Button icon={GitFork} onClick={forkPaste}>
+          Fork
+        </Button>
+        <Button icon={Download} onClick={() => downloadText(paste.content, paste.title || `paste-${paste.id}`, paste.language)}>
+          Download
+        </Button>
+        {!isMock && (
+          <a href={`/api/pastes/${paste.id}?raw=1`} target="_blank" rel="noreferrer" className={buttonClass()}>
+            <FileText className="size-4" aria-hidden /> Raw
+          </a>
+        )}
+        {paste.isOwner &&
+          (confirmingDelete ? (
+            <span className="flex items-center gap-2 rounded-lg border border-danger/30 bg-danger-soft px-2 py-1 animate-fade-up">
+              <span className="text-sm text-danger px-1">Delete permanently?</span>
+              <Button size="sm" variant="danger" loading={deleting} onClick={deletePaste}>
+                Yes, delete
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setConfirmingDelete(false)}>
+                Cancel
+              </Button>
+            </span>
+          ) : (
+            <Button variant="danger" icon={Trash2} onClick={() => setConfirmingDelete(true)}>
+              Delete
+            </Button>
+          ))}
       </div>
 
-      {running && (
-        <CodeRunner code={paste.content} language={paste.language} onClose={() => setRunning(false)} />
-      )}
+      {running && <CodeRunner code={paste.content} language={paste.language} onClose={() => setRunning(false)} />}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-        <div className="border-l-2 border-[#141414] pl-6 py-2 space-y-2">
-          <p className="text-[10px] font-mono font-bold uppercase tracking-widest opacity-60 flex items-center gap-2">
-            <Share2 size={12} /> ACCESS_URL
-          </p>
-          <div className="flex">
-            <code className="flex-1 text-xs font-mono bg-white p-2 border border-[#141414]/10 block truncate">
-              {window.location.href}
-            </code>
-            <button
-              onClick={copyLink}
-              className="px-3 border border-[#141414] bg-[#141414] text-[#E4E3E0] text-[10px] font-mono uppercase flex items-center gap-1"
-            >
-              {linkCopied ? <Check size={12} /> : <Link2 size={12} />} {linkCopied ? 'COPIED' : 'COPY'}
-            </button>
-          </div>
+      <Card className="overflow-hidden">
+        <div className="flex items-center justify-between border-b border-line px-4 py-2 text-xs text-muted">
+          <span className="font-mono">{paste.title || `paste-${paste.id}`}</span>
+          <Button size="sm" variant="ghost" icon={copied ? Check : Copy} onClick={copyContent} aria-label="Copy code">
+            {copied ? 'Copied' : 'Copy'}
+          </Button>
         </div>
-        <div className="text-right flex flex-col justify-center opacity-30 text-[9px] font-mono uppercase tracking-[0.3em] leading-loose">
-          <p>DATA_INTEGRITY: VERIFIED</p>
-          <p>TRANSPORT_PROTOCOL: ENCRYPTED</p>
-          <p>TTL: {paste.expiresAt ? formatDate(paste.expiresAt).toUpperCase() : 'INDEFINITE'}</p>
+        <div className="max-h-[70vh] overflow-auto">
+          <CodeBlock code={paste.content} language={paste.language} />
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

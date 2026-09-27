@@ -38,3 +38,21 @@ export function downloadText(content: string, name: string, language: string) {
   a.remove();
   URL.revokeObjectURL(url);
 }
+
+/** "3 minutes ago", "in 2 days"… */
+export function timeAgo(timestamp: number) {
+  const seconds = Math.round((timestamp - Date.now()) / 1000);
+  const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+  const units: [Intl.RelativeTimeFormatUnit, number][] = [
+    ['year', 31536000],
+    ['month', 2592000],
+    ['week', 604800],
+    ['day', 86400],
+    ['hour', 3600],
+    ['minute', 60],
+  ];
+  for (const [unit, size] of units) {
+    if (Math.abs(seconds) >= size) return rtf.format(Math.trunc(seconds / size), unit);
+  }
+  return 'just now';
+}

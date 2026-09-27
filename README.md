@@ -4,6 +4,7 @@ A fast pastebin for sharing code snippets with syntax highlighting, ready to dep
 
 - **Frontend:** React 19 + Vite + Tailwind CSS (static SPA)
 - **Backend:** Vercel Functions in [`api/`](api) backed by **Upstash Redis**
+- **Light / dark / system theme** with a toggle in the header (remembered per browser)
 - **Code library** (`/codes`): 29 tested, working snippets (JavaScript, TypeScript, Python, HTML, CSS, JSON, Markdown) with search, language filters, copy, download and *Edit & share*
 - **In-browser runner**: JavaScript, **Python** (via Pyodide/WebAssembly), HTML and CSS run in a sandboxed iframe with a live console — in the library, in the editor before publishing, and on any paste
 - **Language auto-detection**: pasting code selects its language, a banner flags mismatches, and code saved under the wrong language (e.g. Python as JavaScript) still runs with the right interpreter

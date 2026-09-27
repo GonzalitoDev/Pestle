@@ -1,111 +1,120 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FileCode, Clock, Eye, Lock, Terminal, ShieldAlert } from 'lucide-react';
-import { getOwnerId, pasteService } from '../lib/pasteService';
+import { FileCode, Globe, Link2, Timer, FolderOpen, Search, AlertCircle, Plus } from 'lucide-react';
+import { pasteService } from '../lib/pasteService';
 import { Paste } from '../types';
-import { formatDate } from '../lib/utils';
+import { timeAgo } from '../lib/utils';
+import { Badge, Card, EmptyState, LanguageBadge, PageHeader, buttonClass } from '../components/ui';
 
 export default function Dashboard() {
   const [pastes, setPastes] = useState<Paste[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
 
   useEffect(() => {
-    pasteService.getMyPastes()
+    pasteService
+      .getMyPastes()
       .then(setPastes)
-      .catch(err => setError(err instanceof Error ? err.message : String(err)))
+      .catch((err) => setError(err instanceof Error ? err.message : String(err)))
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) {
-    return (
-      <div className="space-y-8 animate-pulse pt-10">
-        <div className="h-12 bg-[#141414]/10 w-64 rounded-sm" />
-        <div className="space-y-4">
-          {[1,2,3].map(i => (
-            <div key={i} className="h-20 bg-[#141414]/5 border border-[#141414]/10 rounded-sm" />
-          ))}
-        </div>
-      </div>
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return pastes;
+    return pastes.filter(
+      (p) => (p.title ?? '').toLowerCase().includes(q) || p.language.includes(q) || p.content.toLowerCase().includes(q)
     );
-  }
-
-  if (error) {
-    return (
-      <div className="h-[60vh] flex flex-col items-center justify-center gap-6">
-        <ShieldAlert size={64} strokeWidth={1} className="opacity-20" />
-        <div className="text-center space-y-2">
-          <h2 className="font-mono text-xl font-bold uppercase tracking-tight">VAULT_UNREACHABLE</h2>
-          <p className="font-mono text-xs opacity-40 uppercase tracking-widest">Storage backend returned an error.</p>
-        </div>
-        <p className="text-[10px] font-mono max-w-xs text-center opacity-40 uppercase leading-relaxed">
-          {error}
-        </p>
-      </div>
-    );
-  }
+  }, [pastes, query]);
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-700">
-      <header className="flex flex-col gap-2">
-        <h1 className="text-3xl font-mono font-bold tracking-tighter uppercase underline decoration-[#141414]/20 underline-offset-8 decoration-4">MY_SIGNAL_VAULT</h1>
-        <p className="text-[10px] font-mono uppercase tracking-[0.2em] opacity-40">Stored historical data assets for operator_{getOwnerId().substring(0, 8)}</p>
-      </header>
-
-      {pastes.length === 0 ? (
-        <div className="border border-dashed border-[#141414]/30 p-20 text-center space-y-4 bg-white/50">
-          <Terminal size={32} className="mx-auto opacity-20" />
-          <p className="font-mono text-xs font-bold uppercase tracking-widest opacity-40">VAULT_EMPTY</p>
-          <Link to="/" className="inline-block px-8 py-2 bg-[#141414] text-[#E4E3E0] text-[10px] font-mono uppercase tracking-widest hover:opacity-90 transition-all active:scale-95">
-            GENERATE_FIRST_SIGNAL
+    <div className="space-y-6 animate-fade-up">
+      <PageHeader
+        icon={FolderOpen}
+        title="My pastes"
+        description="Pastes created from this browser. Only you can delete them."
+        actions={
+          <Link to="/" className={buttonClass('primary')}>
+            <Plus className="size-4" aria-hidden /> New paste
           </Link>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 gap-1 border-y border-[#141414]">
-          {pastes.map((paste) => (
-            <Link 
-              key={paste.id} 
-              to={`/paste/${paste.id}`}
-              className="group grid grid-cols-1 md:grid-cols-12 items-center gap-4 p-5 bg-[#E4E3E0] hover:bg-[#141414] hover:text-[#E4E3E0] transition-all cursor-pointer border-b border-[#141414]/10 last:border-b-0"
-            >
-              <div className="md:col-span-1 flex justify-center">
-                <FileCode size={20} className="group-hover:rotate-12 transition-transform" />
-              </div>
-              
-              <div className="md:col-span-5 space-y-1">
-                <p className="font-mono font-bold text-sm tracking-tight group-hover:underline underline-offset-4">
-                  {paste.title || 'UNTITLED_RECORD'}
-                </p>
-                <div className="flex items-center gap-3 text-[9px] font-mono uppercase tracking-widest opacity-50 group-hover:opacity-80">
-                  <span className="flex items-center gap-1.5"><Clock size={10} /> {formatDate(paste.createdAt)}</span>
-                </div>
-              </div>
+        }
+      />
 
-              <div className="md:col-span-3 flex items-center gap-2">
-                <span className="px-2 py-0.5 border border-[#141414]/20 group-hover:border-[#E4E3E0]/40 text-[9px] font-mono font-bold uppercase">
-                  {paste.language}
-                </span>
-                {paste.isPublic ? (
-                  <span className="flex items-center gap-1 text-[9px] font-mono opacity-40 group-hover:opacity-100"><Eye size={10} /> PUBLIC</span>
-                ) : (
-                  <span className="flex items-center gap-1 text-[9px] font-mono opacity-40 group-hover:opacity-100"><Lock size={10} /> UNLISTED</span>
-                )}
-              </div>
-
-              <div className="md:col-span-3 flex justify-end">
-                <p className="text-[10px] font-mono opacity-30 group-hover:opacity-100 tracking-tighter">
-                  SIG_{paste.id.substring(0, 8).toUpperCase()}
-                </p>
-              </div>
-            </Link>
+      {loading ? (
+        <div className="space-y-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-[72px] rounded-xl bg-surface-2 animate-pulse" />
           ))}
         </div>
+      ) : error ? (
+        <EmptyState icon={AlertCircle} title="Could not load your pastes" description={error} />
+      ) : pastes.length === 0 ? (
+        <EmptyState
+          icon={FileCode}
+          title="No pastes yet"
+          description="Everything you publish from this browser shows up here."
+          action={
+            <Link to="/" className={buttonClass('primary')}>
+              Create your first paste
+            </Link>
+          }
+        />
+      ) : (
+        <>
+          {pastes.length > 3 && (
+            <label className="flex h-10 items-center gap-2 rounded-lg border border-line bg-surface px-3 focus-within:border-accent">
+              <Search className="size-4 text-muted" aria-hidden />
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search your pastes"
+                className="w-full bg-transparent text-sm outline-none placeholder:text-muted"
+              />
+            </label>
+          )}
+          <Card className="divide-y divide-line overflow-hidden">
+            {filtered.map((paste) => (
+              <Link
+                key={paste.id}
+                to={`/paste/${paste.id}`}
+                className="group flex items-center gap-4 px-4 py-3.5 hover:bg-surface-2 transition-colors"
+              >
+                <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-surface-2 group-hover:bg-surface">
+                  <FileCode className="size-5 text-muted" aria-hidden />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium group-hover:text-accent">{paste.title || 'Untitled paste'}</p>
+                  <p className="truncate font-mono text-xs text-muted">{paste.content.split('\n')[0]}</p>
+                </div>
+                <div className="hidden sm:flex items-center gap-2">
+                  <LanguageBadge language={paste.language} />
+                  {paste.isPublic ? (
+                    <Badge tone="accent">
+                      <Globe className="size-3" /> Public
+                    </Badge>
+                  ) : (
+                    <Badge>
+                      <Link2 className="size-3" /> Unlisted
+                    </Badge>
+                  )}
+                  {paste.expiresAt && (
+                    <Badge tone="warn">
+                      <Timer className="size-3" /> {timeAgo(paste.expiresAt)}
+                    </Badge>
+                  )}
+                </div>
+                <span className="shrink-0 text-xs text-muted w-24 text-right">{timeAgo(paste.createdAt)}</span>
+              </Link>
+            ))}
+            {filtered.length === 0 && <p className="px-4 py-8 text-center text-sm text-muted">No pastes match “{query}”.</p>}
+          </Card>
+          <p className="text-xs text-muted">
+            {pastes.length} {pastes.length === 1 ? 'paste' : 'pastes'}
+          </p>
+        </>
       )}
-
-      <div className="flex items-center justify-between pt-10 opacity-30 text-[9px] font-mono uppercase tracking-widest">
-        <p>TOTAL_ENTRIES: {pastes.length}</p>
-        <p className="flex items-center gap-2">STORAGE_STATUS: NOMINAL <div className="w-1.5 h-1.5 rounded-full bg-green-500" /></p>
-      </div>
     </div>
   );
 }

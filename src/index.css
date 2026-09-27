@@ -1,26 +1,160 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
 @import "tailwindcss";
 
-@theme {
+/*
+ * Design tokens. Components only use these semantic colors (bg-surface, text-muted, border-line…),
+ * so light and dark themes are just two sets of values.
+ * Theme selection: <html data-theme="light|dark">; without it we follow the OS setting.
+ */
+:root {
+  color-scheme: light;
+  --bg: #f7f7f5;
+  --surface: #ffffff;
+  --surface-2: #f1f1ee;
+  --fg: #16161a;
+  --muted: #6b6b73;
+  --line: #e3e3de;
+  --line-strong: #c9c9c2;
+  --accent: #4f46e5;
+  --accent-fg: #ffffff;
+  --accent-soft: #eef0ff;
+  --success: #15803d;
+  --success-soft: #e8f7ee;
+  --danger: #c2261d;
+  --danger-soft: #fdeceb;
+  --warn: #a16207;
+  --warn-soft: #fdf6e3;
+  --console-bg: #121217;
+  --console-fg: #e6e6ea;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 4px 16px rgb(0 0 0 / 0.05);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --bg: #0c0c0f;
+    --surface: #15151a;
+    --surface-2: #1c1c22;
+    --fg: #ececf1;
+    --muted: #9a9aa6;
+    --line: #26262e;
+    --line-strong: #3a3a45;
+    --accent: #8b87ff;
+    --accent-fg: #0c0c0f;
+    --accent-soft: #1f1d3a;
+    --success: #4ade80;
+    --success-soft: #11291b;
+    --danger: #f87171;
+    --danger-soft: #2e1415;
+    --warn: #fbbf24;
+    --warn-soft: #2b2210;
+    --console-bg: #09090c;
+    --console-fg: #e6e6ea;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.35);
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0c0c0f;
+  --surface: #15151a;
+  --surface-2: #1c1c22;
+  --fg: #ececf1;
+  --muted: #9a9aa6;
+  --line: #26262e;
+  --line-strong: #3a3a45;
+  --accent: #8b87ff;
+  --accent-fg: #0c0c0f;
+  --accent-soft: #1f1d3a;
+  --success: #4ade80;
+  --success-soft: #11291b;
+  --danger: #f87171;
+  --danger-soft: #2e1415;
+  --warn: #fbbf24;
+  --warn-soft: #2b2210;
+  --console-bg: #09090c;
+  --console-fg: #e6e6ea;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.35);
+}
+
+@theme inline {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-accent-soft: var(--accent-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-console: var(--console-bg);
+  --color-console-fg: var(--console-fg);
+  --shadow-card: var(--shadow);
 }
 
 @layer base {
   * {
-    @apply border-[#141414]/10;
+    @apply border-line;
+  }
+  html {
+    @apply bg-bg text-fg antialiased;
+  }
+  body {
+    @apply bg-bg;
+  }
+  ::selection {
+    @apply bg-accent text-accent-fg;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent;
+  }
+  select {
+    @apply cursor-pointer;
   }
 }
 
-/* Custom Syntax Highlighter Overrides */
-pre[class*="language-"] {
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.35s ease-out both;
+}
+
+/* Syntax highlighter: let our surface show through the Prism theme. */
+pre[class*='language-'],
+code[class*='language-'] {
+  text-shadow: none !important;
+  background: transparent !important;
+}
+pre[class*='language-'] {
   border: none !important;
   box-shadow: none !important;
   margin: 0 !important;
   border-radius: 0 !important;
 }
-
-code[class*="language-"] {
-  text-shadow: none !important;
-}
-

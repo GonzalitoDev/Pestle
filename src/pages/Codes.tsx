@@ -1,17 +1,21 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vs } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Check, Copy, Download, Library, Pencil, Play, Search, Terminal } from 'lucide-react';
+import { Check, ChevronDown, Copy, Download, Library, Pencil, Play, Search, Terminal, X, SearchX } from 'lucide-react';
 import { SNIPPETS, Snippet, isRunnable } from '../data/snippets';
 import { LANGUAGES } from '../types';
 import CodeRunner from '../components/CodeRunner';
+import CodeBlock from '../components/CodeBlock';
+import { Button, Card, EmptyState, Kbd, LanguageBadge, PageHeader } from '../components/ui';
 import { cn, downloadText } from '../lib/utils';
+import { useToast } from '../components/Toast';
+
+const COLLAPSED_LINES = 16;
 
 export default function Codes() {
   const [params, setParams] = useSearchParams();
   const query = params.get('q') ?? '';
   const language = params.get('lang') ?? 'all';
+  const searchRef = useRef<HTMLInputElement>(null);
 
   const updateParam = (key: string, value: string) => {
     const next = new URLSearchParams(params);
@@ -20,8 +24,24 @@ export default function Codes() {
     setParams(next, { replace: true });
   };
 
-  const languagesInLibrary = useMemo(
-    () => LANGUAGES.filter((l) => SNIPPETS.some((s) => s.language === l.value)),
+  // "/" focuses the search box, like on GitHub.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      if (e.key === '/' && !/^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  const languageFilters = useMemo(
+    () => [
+      { value: 'all', label: 'All', count: SNIPPETS.length },
+      ...LANGUAGES.map((l) => ({ ...l, count: SNIPPETS.filter((s) => s.language === l.value).length })).filter((l) => l.count > 0),
+    ],
     []
   );
 
@@ -39,53 +59,67 @@ export default function Codes() {
   }, [query, language]);
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      <header className="flex flex-col gap-2">
-        <h1 className="text-3xl font-mono font-bold tracking-tighter flex items-center gap-3">
-          <Library size={28} /> CODE_LIBRARY
-        </h1>
-        <p className="text-xs font-mono uppercase tracking-[0.2em] opacity-40">
-          {SNIPPETS.length} working snippets · run, copy, edit or share them
-        </p>
-      </header>
+    <div className="space-y-6 animate-fade-up">
+      <PageHeader
+        icon={Library}
+        title="Code library"
+        description={`${SNIPPETS.length} tested snippets. Run them here, copy them, or open them in the editor to adapt and share.`}
+      />
 
-      <div className="flex flex-col md:flex-row gap-3">
-        <label className="flex-1 flex items-center gap-2 border border-[#141414] bg-white px-3 py-2">
-          <Search size={14} className="opacity-40" />
+      <div className="sticky top-16 z-30 -mx-4 space-y-3 bg-bg/85 px-4 py-3 backdrop-blur-md sm:-mx-6 sm:px-6">
+        <label className="flex h-10 items-center gap-2 rounded-lg border border-line bg-surface px-3 focus-within:border-accent transition-colors">
+          <Search className="size-4 text-muted" aria-hidden />
           <input
+            ref={searchRef}
             type="search"
+            aria-label="Search snippets"
             value={query}
             onChange={(e) => updateParam('q', e.target.value)}
-            placeholder="SEARCH: debounce, fetch, layout…"
-            className="w-full bg-transparent outline-none font-mono text-xs"
+            placeholder="Search: debounce, fetch, layout…"
+            className="w-full bg-transparent text-sm outline-none placeholder:text-muted"
           />
+          {query ? (
+            <button onClick={() => updateParam('q', '')} aria-label="Clear search" className="text-muted hover:text-fg">
+              <X className="size-4" />
+            </button>
+          ) : (
+            <Kbd>/</Kbd>
+          )}
         </label>
-        <div className="flex flex-wrap gap-1">
-          {[{ value: 'all', label: 'All' }, ...languagesInLibrary].map((l) => (
+        <div className="flex gap-1.5 overflow-x-auto pb-1" role="tablist" aria-label="Filter by language">
+          {languageFilters.map((l) => (
             <button
               key={l.value}
+              role="tab"
+              aria-selected={language === l.value}
               onClick={() => updateParam('lang', l.value)}
               className={cn(
-                'px-3 py-2 text-[10px] font-mono uppercase tracking-wider border transition-colors',
+                'inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border px-3 text-sm transition-colors',
                 language === l.value
-                  ? 'bg-[#141414] text-[#E4E3E0] border-[#141414]'
-                  : 'bg-white border-[#141414]/20 hover:border-[#141414]'
+                  ? 'border-fg bg-fg text-bg'
+                  : 'border-line bg-surface text-muted hover:text-fg hover:border-line-strong'
               )}
             >
-              {l.label}
+              <span>{l.label}</span>
+              <span className={cn('text-xs', language === l.value ? 'opacity-70' : 'text-muted')}>{l.count}</span>
             </button>
           ))}
         </div>
       </div>
 
       {filtered.length === 0 ? (
-        <div className="border border-dashed border-[#141414]/30 p-16 text-center bg-white/50">
-          <p className="font-mono text-xs font-bold uppercase tracking-widest opacity-40">NO_MATCHES</p>
-        </div>
+        <EmptyState
+          icon={SearchX}
+          title="No snippets match your search"
+          description="Try another word or clear the filters."
+          action={
+            <Button onClick={() => setParams({}, { replace: true })}>Clear filters</Button>
+          }
+        />
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-5">
           {filtered.map((snippet) => (
-            <SnippetCard key={snippet.id} snippet={snippet} />
+            <SnippetCard key={snippet.id} snippet={snippet} onTag={(t) => updateParam('q', t)} />
           ))}
         </div>
       )}
@@ -93,89 +127,98 @@ export default function Codes() {
   );
 }
 
-function SnippetCard({ snippet }: { snippet: Snippet }) {
+function SnippetCard({ snippet, onTag }: { snippet: Snippet; onTag: (tag: string) => void }) {
   const navigate = useNavigate();
+  const toast = useToast();
   const [running, setRunning] = useState(false);
   const [copied, setCopied] = useState(false);
+  const lineCount = snippet.code.split('\n').length;
+  const [expanded, setExpanded] = useState(lineCount <= COLLAPSED_LINES + 4);
   const runnable = isRunnable(snippet.language) && !snippet.runLocally;
 
   const copy = async () => {
     await navigator.clipboard.writeText(snippet.code);
     setCopied(true);
+    toast(`Copied “${snippet.title}”`);
     setTimeout(() => setCopied(false), 2000);
   };
 
   const openInEditor = () =>
-    navigate('/', {
-      state: { title: snippet.title, content: snippet.code, language: snippet.language },
-    });
+    navigate('/', { state: { title: snippet.title, content: snippet.code, language: snippet.language } });
 
-  const buttonClass =
-    'flex items-center gap-1.5 px-3 py-1.5 border border-[#141414] bg-white text-[10px] font-mono font-bold uppercase tracking-widest hover:bg-[#141414] hover:text-[#E4E3E0] transition-all active:scale-95';
+  const visibleCode = expanded ? snippet.code : snippet.code.split('\n').slice(0, COLLAPSED_LINES).join('\n');
 
   return (
-    <article id={snippet.id} className="border border-[#141414] bg-[#E4E3E0] shadow-[4px_4px_0px_0px_rgba(20,20,20,1)] scroll-mt-24">
-      <div className="p-5 flex flex-col lg:flex-row lg:items-start justify-between gap-4 border-b border-[#141414]">
-        <div className="space-y-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="px-2 py-0.5 bg-[#141414] text-[#E4E3E0] text-[9px] font-mono font-bold uppercase tracking-widest">
-              {snippet.language}
-            </span>
-            {snippet.tags.map((t) => (
-              <span key={t} className="px-2 py-0.5 border border-[#141414]/20 text-[9px] font-mono uppercase">
-                #{t}
-              </span>
-            ))}
+    <article id={snippet.id} className="scroll-mt-40">
+      <Card className="overflow-hidden">
+        <div className="flex flex-col gap-4 p-5 lg:flex-row lg:items-start lg:justify-between">
+          <div className="space-y-2 min-w-0">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <LanguageBadge language={snippet.language} />
+              {snippet.tags.map((t) => (
+                <button
+                  key={t}
+                  onClick={() => onTag(t)}
+                  className="rounded-md px-1.5 py-0.5 text-xs text-muted hover:bg-surface-2 hover:text-fg"
+                >
+                  #{t}
+                </button>
+              ))}
+            </div>
+            <h2 className="text-lg font-semibold tracking-tight">{snippet.title}</h2>
+            <p className="text-sm text-muted max-w-2xl">{snippet.description}</p>
+            {snippet.runLocally && (
+              <p className="flex flex-wrap items-center gap-2 text-xs text-muted">
+                <Terminal className="size-3.5 shrink-0" aria-hidden />
+                Needs a server, run it locally:
+                <code className="rounded-md border border-line bg-surface-2 px-1.5 py-0.5 font-mono text-fg break-all">
+                  {snippet.runLocally}
+                </code>
+              </p>
+            )}
           </div>
-          <h2 className="font-mono font-bold text-lg tracking-tight">{snippet.title}</h2>
-          <p className="text-sm opacity-70 max-w-2xl">{snippet.description}</p>
-          {snippet.runLocally && (
-            <p className="flex items-center gap-2 text-[11px] font-mono">
-              <Terminal size={12} className="shrink-0" />
-              <span className="opacity-60 uppercase">Needs a real machine · run locally:</span>
-              <code className="bg-white border border-[#141414]/10 px-1.5 py-0.5 break-all">{snippet.runLocally}</code>
-            </p>
-          )}
+          <div className="flex shrink-0 flex-wrap gap-2">
+            {runnable && (
+              <Button variant="success" size="sm" icon={running ? X : Play} onClick={() => setRunning((r) => !r)}>
+                {running ? 'Hide' : 'Run'}
+              </Button>
+            )}
+            <Button size="sm" icon={copied ? Check : Copy} onClick={copy}>
+              {copied ? 'Copied' : 'Copy'}
+            </Button>
+            <Button size="sm" icon={Pencil} onClick={openInEditor} title="Open in the editor to modify and share">
+              Edit &amp; share
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              icon={Download}
+              aria-label={`Download ${snippet.title}`}
+              onClick={() => downloadText(snippet.code, snippet.id, snippet.language)}
+            />
+          </div>
         </div>
-        <div className="flex flex-wrap gap-2 shrink-0">
-          {runnable && (
-            <button
-              onClick={() => setRunning((r) => !r)}
-              className={cn(buttonClass, running ? 'bg-[#141414] text-[#E4E3E0]' : 'bg-green-100')}
-            >
-              <Play size={12} /> {running ? 'HIDE' : 'RUN'}
-            </button>
-          )}
-          <button onClick={copy} className={buttonClass}>
-            {copied ? <Check size={12} /> : <Copy size={12} />} {copied ? 'COPIED' : 'COPY'}
-          </button>
-          <button onClick={openInEditor} className={buttonClass} title="Open in the editor to modify and share">
-            <Pencil size={12} /> EDIT_&_SHARE
-          </button>
-          <button onClick={() => downloadText(snippet.code, snippet.id, snippet.language)} className={buttonClass}>
-            <Download size={12} />
-          </button>
-        </div>
-      </div>
 
-      <div className={cn('grid grid-cols-1', running && 'xl:grid-cols-2')}>
-        <div className="bg-white max-h-[420px] overflow-auto">
-          <SyntaxHighlighter
-            language={snippet.language}
-            style={vs}
-            customStyle={{ margin: 0, padding: '1.25rem', background: 'white', fontSize: '12px', lineHeight: '1.6' }}
-            showLineNumbers
-            lineNumberStyle={{ opacity: 0.2, minWidth: '2.5em' }}
-          >
-            {snippet.code}
-          </SyntaxHighlighter>
-        </div>
-        {running && (
-          <div className="p-4 border-t xl:border-t-0 xl:border-l border-[#141414]">
-            <CodeRunner code={snippet.code} language={snippet.language} demo={snippet.demo} onClose={() => setRunning(false)} />
+        <div className={cn('grid grid-cols-1 border-t border-line', running && 'xl:grid-cols-2')}>
+          <div className="relative min-w-0 bg-surface-2/40">
+            <div className="overflow-x-auto">
+              <CodeBlock code={visibleCode} language={snippet.language} />
+            </div>
+            {!expanded && (
+              <div className="absolute inset-x-0 bottom-0 flex justify-center bg-gradient-to-t from-surface via-surface/90 to-transparent pb-3 pt-12">
+                <Button size="sm" icon={ChevronDown} onClick={() => setExpanded(true)}>
+                  Show all {lineCount} lines
+                </Button>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+          {running && (
+            <div className="border-t border-line p-4 xl:border-l xl:border-t-0">
+              <CodeRunner code={snippet.code} language={snippet.language} demo={snippet.demo} onClose={() => setRunning(false)} />
+            </div>
+          )}
+        </div>
+      </Card>
     </article>
   );
 }

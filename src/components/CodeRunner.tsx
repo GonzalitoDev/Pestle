@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Play, RotateCcw, X } from 'lucide-react';
+import { Eye, Play, RotateCcw, ShieldCheck, Wand2, X } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { detectLanguage } from '../lib/detectLanguage';
 import { isRunnable } from '../data/snippets';
@@ -100,6 +100,8 @@ export function buildDocument(code: string, language: string, demo?: string) {
   return CONSOLE_BRIDGE + code;
 }
 
+const LANGUAGE_NAMES: Record<string, string> = { javascript: 'JavaScript', python: 'Python', html: 'HTML', css: 'CSS' };
+
 const LOG_TYPES = new Set(['log', 'info', 'warn', 'error']);
 const MAX_LOG_LENGTH = 10_000;
 
@@ -152,34 +154,44 @@ export default function CodeRunner({ code, language, demo, onClose }: CodeRunner
     setLogs([]);
   }, [runId, debouncedCode]);
 
+  const languageName = LANGUAGE_NAMES[effectiveLanguage] ?? effectiveLanguage;
+
   return (
-    <div className="border border-[#141414] bg-white shadow-[4px_4px_0px_0px_rgba(20,20,20,1)]">
-      <div className="border-b border-[#141414] px-4 py-2 flex items-center justify-between bg-[#f8f8f7]">
-        <span className="flex items-center gap-2 text-[10px] font-mono font-bold uppercase tracking-widest">
-          <Play size={12} /> {showsPreview ? 'LIVE_PREVIEW' : 'EXECUTION_OUTPUT'}
+    <div className="overflow-hidden rounded-xl border border-line bg-surface shadow-card animate-fade-up">
+      <div className="flex items-center justify-between gap-2 border-b border-line px-4 py-2">
+        <span className="flex items-center gap-2 text-sm font-medium">
+          {showsPreview ? <Eye className="size-4 text-success" aria-hidden /> : <Play className="size-4 text-success" aria-hidden />}
+          {showsPreview ? 'Live preview' : 'Output'}
+          <span className="font-normal text-muted">· {languageName}</span>
         </span>
         <div className="flex items-center gap-1">
           <button
             onClick={() => setRunId((n) => n + 1)}
-            className="flex items-center gap-1 px-2 py-1 text-[10px] font-mono uppercase hover:bg-[#141414] hover:text-[#E4E3E0] transition-colors"
+            className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs text-muted hover:bg-surface-2 hover:text-fg transition-colors"
             title="Run again"
           >
-            <RotateCcw size={12} /> RERUN
+            <RotateCcw className="size-3.5" aria-hidden /> Run again
           </button>
           {onClose && (
-            <button onClick={onClose} className="p-1 hover:bg-[#141414] hover:text-[#E4E3E0] transition-colors" title="Close">
-              <X size={14} />
+            <button
+              onClick={onClose}
+              className="inline-flex size-8 items-center justify-center rounded-lg text-muted hover:bg-surface-2 hover:text-fg"
+              aria-label="Close output"
+            >
+              <X className="size-4" />
             </button>
           )}
         </div>
       </div>
 
-      <p className="px-4 py-1.5 text-[9px] font-mono uppercase tracking-widest bg-yellow-50 border-b border-[#141414]/10 opacity-80">
-        Isolated sandbox · this code cannot read your Pestle data, cookies or storage
+      <p className="flex items-center gap-1.5 border-b border-line bg-surface-2/60 px-4 py-1.5 text-[11px] text-muted">
+        <ShieldCheck className="size-3.5 text-success" aria-hidden />
+        Runs in an isolated sandbox: this code can't read your Pestle data, cookies or storage.
       </p>
       {effectiveLanguage !== language && (
-        <p className="px-4 py-1.5 text-[10px] font-mono uppercase tracking-widest bg-blue-50 border-b border-[#141414]/10">
-          Detected {effectiveLanguage} code · running it with {effectiveLanguage === 'python' ? 'Python' : effectiveLanguage}
+        <p className="flex items-center gap-1.5 border-b border-line bg-accent-soft px-4 py-1.5 text-xs text-accent">
+          <Wand2 className="size-3.5" aria-hidden />
+          Detected {languageName} code, running it with {languageName}.
         </p>
       )}
 
@@ -189,12 +201,12 @@ export default function CodeRunner({ code, language, demo, onClose }: CodeRunner
         title="Code runner"
         sandbox="allow-scripts allow-forms"
         src="/runner.html"
-        className={cn('w-full bg-white', showsPreview ? 'h-80 border-b border-[#141414]/10' : 'hidden')}
+        className={cn('w-full bg-white', showsPreview ? 'h-80 border-b border-line' : 'hidden')}
       />
 
-      <div className="bg-[#141414] text-[#E4E3E0] font-mono text-xs p-4 max-h-72 overflow-auto space-y-1" aria-live="polite">
+      <div className="max-h-72 space-y-1 overflow-auto bg-console p-4 font-mono text-xs text-console-fg" aria-live="polite" aria-label="Console output">
         {logs.length === 0 ? (
-          <p className="opacity-40">{showsPreview ? '// console output appears here' : '// running… (no output yet)'}</p>
+          <p className="text-console-fg/50">{showsPreview ? 'Console output appears here' : 'Running…'}</p>
         ) : (
           logs.map((line, i) => (
             <pre
@@ -202,7 +214,8 @@ export default function CodeRunner({ code, language, demo, onClose }: CodeRunner
               className={cn(
                 'whitespace-pre-wrap break-words',
                 line.type === 'error' && 'text-red-400',
-                line.type === 'warn' && 'text-yellow-300'
+                line.type === 'warn' && 'text-amber-300',
+                line.type === 'info' && 'text-sky-300'
               )}
             >
               {line.type === 'error' ? '✕ ' : line.type === 'warn' ? '⚠ ' : '› '}
