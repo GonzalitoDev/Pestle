@@ -15,14 +15,15 @@ import {
   XCircle,
 } from 'lucide-react';
 import { COURSES } from '../data/courses';
-import { loadCode, markDone, saveCode, useCompleted } from '../lib/courseProgress';
+import { markDone, setLastVisited, startProgressSync, useCompleted, useLessonCode } from '../lib/courseProgress';
 import { CONCEPT_LABELS, MARK, REVIEW_DONE, buildProjectProgram, buildRunProgram } from '../lib/pythonCheck';
 import { pasteService } from '../lib/pasteService';
 import CodeRunner, { LogLine } from '../components/CodeRunner';
 import CodeBlock from '../components/CodeBlock';
 import Prose from '../components/Prose';
-import { Badge, Button, Card, Kbd, buttonClass } from '../components/ui';
+import { Badge, Button, Card, buttonClass } from '../components/ui';
 import { useToast } from '../components/Toast';
+import SaveStatus from '../components/SaveStatus';
 import { cn } from '../lib/utils';
 
 export const PROJECT_ID = 'proyecto';
@@ -48,7 +49,7 @@ function ProjectView({ courseId }: { courseId: string }) {
   const projectDone = done.has(`${course.id}/${PROJECT_ID}`);
   const nextLesson = course.lessons.find((l) => !done.has(`${course.id}/${l.id}`));
 
-  const [code, setCode] = useState(() => loadCode(course.id, PROJECT_ID) ?? project.starter);
+  const [code, setCode] = useLessonCode(course.id, PROJECT_ID, project.starter);
   const [run, setRun] = useState<{ id: number; program: string; mode: 'check' | 'run' } | null>(null);
   const [status, setStatus] = useState<Record<string, ReqStatus>>({});
   const [concepts, setConcepts] = useState<string[] | null>(null);
@@ -56,7 +57,10 @@ function ProjectView({ courseId }: { courseId: string }) {
   const [showSolution, setShowSolution] = useState(false);
   const [publishing, setPublishing] = useState(false);
 
-  useEffect(() => saveCode(course.id, PROJECT_ID, code), [code, course.id]);
+  useEffect(() => {
+    startProgressSync();
+    setLastVisited(`/cursos/${course.id}/${PROJECT_ID}`);
+  }, [course.id]);
 
   const passed = project.requirements.filter((r) => status[r.id]?.ok).length;
   const allPassed = passed === project.requirements.length;
@@ -285,9 +289,7 @@ function ProjectView({ courseId }: { courseId: string }) {
               <Card className="overflow-hidden">
                 <div className="flex items-center justify-between border-b border-line px-4 py-2.5">
                   <p className="font-mono text-xs text-muted">proyecto.py</p>
-                  <span className="hidden items-center gap-1 text-xs text-muted sm:flex">
-                    <Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> probar
-                  </span>
+                  <SaveStatus />
                 </div>
                 <textarea
                   aria-label="Código del proyecto"

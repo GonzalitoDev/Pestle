@@ -1,11 +1,27 @@
+import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Award, BookOpen, CheckCircle2, GraduationCap, Lock, Play, Sparkles } from 'lucide-react';
+import { ArrowRight, Award, BookOpen, CheckCircle2, GraduationCap, History, Lock, Play, Sparkles } from 'lucide-react';
 import { COURSES } from '../data/courses';
-import { useCompleted } from '../lib/courseProgress';
+import { startProgressSync, useProgress } from '../lib/courseProgress';
 import { Badge, Card, PageHeader, buttonClass } from '../components/ui';
+import ProgressSync from '../components/ProgressSync';
+
+/** Human title for a saved "last visited" path like /cursos/<course>/<lesson|proyecto>. */
+function describe(path: string) {
+  const [, , courseId, itemId] = path.split('/');
+  const course = COURSES.find((c) => c.id === courseId);
+  if (!course) return null;
+  if (itemId === 'proyecto') return { course, title: `Proyecto final: ${course.project.title}` };
+  const lesson = course.lessons.find((l) => l.id === itemId);
+  return lesson ? { course, title: lesson.title } : null;
+}
 
 export default function Courses() {
-  const done = useCompleted();
+  const progress = useProgress();
+  const done = new Set(progress.done);
+  const resume = progress.last ? describe(progress.last.path) : null;
+
+  useEffect(() => startProgressSync(), []);
 
   return (
     <div className="space-y-8 animate-fade-up">
@@ -14,6 +30,24 @@ export default function Courses() {
         title="Cursos de Python"
         description="Aprendé programando: cada lección tiene una explicación, ejemplos que podés ejecutar y un ejercicio que se corrige solo. Todo corre en tu navegador, sin instalar nada."
       />
+
+      {resume && progress.last && (
+        <Link
+          to={progress.last.path}
+          className="group flex items-center gap-4 rounded-xl border border-accent/30 bg-accent-soft p-4 transition-colors hover:border-accent/60"
+        >
+          <div className="grid size-10 shrink-0 place-items-center rounded-lg bg-surface">
+            <History className="size-5 text-accent" aria-hidden />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-medium uppercase tracking-wide text-accent">Continuar donde lo dejaste</p>
+            <p className="truncate font-medium">
+              {resume.title} <span className="font-normal text-muted">· {resume.course.title}</span>
+            </p>
+          </div>
+          <ArrowRight className="size-5 text-accent transition-transform group-hover:translate-x-0.5" aria-hidden />
+        </Link>
+      )}
 
       <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
         {COURSES.map((course) => {
@@ -123,9 +157,10 @@ export default function Courses() {
         })}
       </div>
 
+      <ProgressSync />
+
       <p className="text-sm text-muted">
-        Tu progreso se guarda en este navegador. Python corre dentro de tu navegador (con Pyodide): la primera vez que ejecutes
-        código tarda unos segundos en cargar.
+        Python corre dentro de tu navegador (con Pyodide): la primera vez que ejecutes código tarda unos segundos en cargar.
       </p>
     </div>
   );

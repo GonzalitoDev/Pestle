@@ -25,6 +25,19 @@ export function getOwnerId() {
   }
 }
 
+/** Uses an existing identity (e.g. copied from another device). Returns false if the code is invalid. */
+export function setOwnerId(id: string) {
+  const value = id.trim();
+  if (!OWNER_ID_PATTERN.test(value)) return false;
+  try {
+    localStorage.setItem(OWNER_ID_KEY, value);
+  } catch {
+    // storage blocked: keep it for this visit
+  }
+  memoryOwnerId = value;
+  return true;
+}
+
 const EXPIRY_MS: Record<NewPaste['expiresIn'], number | null> = {
   never: null,
   '1h': 60 * 60 * 1000,
