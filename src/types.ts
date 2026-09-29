@@ -24,14 +24,14 @@ export interface NewPaste {
 }
 
 export const EXPIRIES: { value: Expiry; label: string }[] = [
-  { value: 'never', label: 'Never' },
-  { value: '1h', label: '1 Hour' },
-  { value: '1d', label: '1 Day' },
-  { value: '1w', label: '1 Week' },
+  { value: 'never', label: 'Nunca' },
+  { value: '1h', label: '1 hora' },
+  { value: '1d', label: '1 día' },
+  { value: '1w', label: '1 semana' },
 ];
 
 export const LANGUAGES: { value: Language; label: string }[] = [
-  { value: 'text', label: 'Plain Text' },
+  { value: 'text', label: 'Texto plano' },
   { value: 'javascript', label: 'JavaScript' },
   { value: 'typescript', label: 'TypeScript' },
   { value: 'python', label: 'Python' },

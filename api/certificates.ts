@@ -70,14 +70,14 @@ export const GET = safe(async (request) => {
   if (id !== null) {
     // Crockford: letters that look like digits are read as those digits (O → 0, I/L → 1).
     const normalized = id.trim().toUpperCase().replace(/O/g, '0').replace(/[IL]/g, '1');
-    if (!ID_PATTERN.test(normalized)) return json({ error: 'Certificate not found' }, 404);
+    if (!ID_PATTERN.test(normalized)) return json({ error: 'No existe un certificado con ese código' }, 404);
     const cert = await redis.get<StoredCertificate>(certKey(normalized));
-    if (!cert) return json({ error: 'Certificate not found' }, 404);
+    if (!cert) return json({ error: 'No existe un certificado con ese código' }, 404);
     return json(await toPublic(cert, ownerHash));
   }
 
   // Without an id: the caller's own certificates, as { courseId: certificateId }.
-  if (!ownerHash) return json({ error: 'Missing x-owner-id header' }, 400);
+  if (!ownerHash) return json({ error: 'Falta el encabezado x-owner-id' }, 400);
   const ids = await Promise.all(COURSES.map((c) => redis!.hget<string>(ownerCertsKey(ownerHash), c.id)));
   return json({ certificates: Object.fromEntries(COURSES.flatMap((c, i) => (ids[i] ? [[c.id, ids[i]]] : []))) });
 });
@@ -85,23 +85,23 @@ export const GET = safe(async (request) => {
 export const POST = safe(async (request) => {
   if (!redis) return storageUnavailable();
   if (!request.headers.get('content-type')?.toLowerCase().startsWith('application/json')) {
-    return json({ error: 'content-type must be application/json' }, 415);
+    return json({ error: 'El content-type tiene que ser application/json' }, 415);
   }
   const limited = await rateLimit(request, 'certificate', 20, 3600);
   if (limited) return limited;
   const ownerHash = await ownerHashFrom(request);
-  if (!ownerHash) return json({ error: 'Missing x-owner-id header' }, 400);
+  if (!ownerHash) return json({ error: 'Falta el encabezado x-owner-id' }, 400);
 
   let body: { courseId?: unknown; name?: unknown };
   try {
     const text = await request.text();
-    if (text.length > 4096) return json({ error: 'Request body too large' }, 413);
+    if (text.length > 4096) return json({ error: 'El pedido es demasiado grande' }, 413);
     body = JSON.parse(text);
   } catch {
-    return json({ error: 'Invalid JSON body' }, 400);
+    return json({ error: 'El cuerpo no es un JSON válido' }, 400);
   }
   const course = COURSES.find((c) => c.id === body.courseId);
-  if (!course) return json({ error: 'Unknown course' }, 400);
+  if (!course) return json({ error: 'Ese curso no existe' }, 400);
   const name = cleanName(body.name);
   if (!name) return json({ error: 'Escribí tu nombre y apellido (solo letras, de 3 a 60 caracteres).' }, 400);
 
@@ -143,7 +143,7 @@ export const POST = safe(async (request) => {
   const claimed = await redis.hsetnx(index, course.id, cert.id);
   if (!claimed) {
     const winner = await redis.get<StoredCertificate>(certKey((await redis.hget<string>(index, course.id))!));
-    return winner ? json(await toPublic(winner, ownerHash)) : json({ error: 'Try again in a moment' }, 409);
+    return winner ? json(await toPublic(winner, ownerHash)) : json({ error: 'Probá de nuevo en un momento' }, 409);
   }
   await redis.set(certKey(cert.id), cert, { nx: true });
   return json(await toPublic(cert, ownerHash), 201);

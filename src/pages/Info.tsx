@@ -18,65 +18,68 @@ function InfoPage({ title, subtitle, children }: { title: string; subtitle: stri
 
 export function Privacy() {
   return (
-    <InfoPage title="Privacy" subtitle="What Pestle stores and why">
+    <InfoPage title="Privacidad" subtitle="Qué guarda Pestle y para qué">
       <section>
-        <h2>No accounts</h2>
+        <h2>Sin cuentas</h2>
         <p>
-          Pestle has no sign-up. Your browser gets a random identifier (stored in <code>localStorage</code>) so you can list
-          and delete the pastes you created. The server only keeps a keyed one-way hash (HMAC-SHA256) of it.
+          En Pestle no hay registro. Tu navegador recibe un identificador al azar (guardado en <code>localStorage</code>) para
+          que puedas ver y borrar lo que publicaste. El servidor solo guarda un hash de ese identificador (HMAC-SHA256), que no
+          se puede revertir.
         </p>
       </section>
       <section>
-        <h2>What we store</h2>
+        <h2>Qué guardamos</h2>
         <p>
-          The title, content, language, visibility, creation time and optional expiry of each paste. No email, no
-          accounts, no tracking cookies, no analytics.
+          De cada código publicado: el título, el contenido, el lenguaje, la visibilidad, la fecha de creación y el
+          vencimiento, si elegiste uno. Nada de emails, cuentas, cookies de seguimiento ni estadísticas.
         </p>
       </section>
       <section>
-        <h2>Course progress</h2>
+        <h2>Progreso de los cursos</h2>
         <p>
-          If you use the Python courses, the lessons you completed, the code you wrote in each exercise and the last lesson
-          you opened are saved in your browser and on the server under your anonymous identifier (stored hashed), so you
-          don't lose them when you close the page or switch devices. It is kept for one year after your last change.
+          Si hacés los cursos de Python, las lecciones que completaste, el código que escribiste en cada ejercicio y la
+          última lección que abriste se guardan en tu navegador y en el servidor, asociados a tu identificador anónimo
+          (guardado como hash). Así no lo perdés si cerrás la página o cambiás de dispositivo. Se conserva durante un año
+          desde tu último cambio.
         </p>
       </section>
       <section>
-        <h2>Certificates</h2>
+        <h2>Certificados</h2>
         <p>
-          When you finish a course you can ask for a certificate. It stores the name you type, the course, the date and a
-          copy of your final project. Certificates are public by design: anyone with the code or the QR can open the
-          verification page and see that information. They are kept permanently so they keep verifying.
+          Cuando terminás un curso podés pedir un certificado. Se guarda el nombre que escribas, el curso, la fecha y una
+          copia de tu proyecto final. Los certificados son públicos a propósito: cualquiera que tenga el código o el QR puede
+          abrir la página de verificación y ver esos datos. Se guardan para siempre, para que sigan siendo verificables.
         </p>
       </section>
       <section>
-        <h2>Abuse protection</h2>
+        <h2>Protección contra abusos</h2>
         <p>
-          To stop spam, the API counts requests per IP address. The IP is never stored as-is: only a keyed hash is kept,
-          and each counter is deleted automatically after at most 10 minutes.
+          Para frenar el spam, la API cuenta los pedidos de cada dirección IP. La IP nunca se guarda tal cual: solo un hash,
+          y cada contador se borra solo en un máximo de 10 minutos (una hora en el caso de los certificados).
         </p>
       </section>
       <section>
-        <h2>Visibility</h2>
+        <h2>Visibilidad</h2>
         <p>
-          <strong>Public</strong> pastes appear in the <Link to="/explore">public feed</Link>.{' '}
-          <strong>Unlisted</strong> pastes never appear there, but anyone with the link can open them. Do not paste
-          passwords, API keys or personal data.
+          Lo que publicás como <strong>Público</strong> aparece en <Link to="/explore">Explorar</Link>. Lo{' '}
+          <strong>Oculto</strong> nunca aparece ahí, pero cualquiera que tenga el enlace lo puede abrir. No publiques
+          contraseñas, claves de API ni datos personales.
         </p>
       </section>
       <section>
-        <h2>Deletion</h2>
+        <h2>Borrado</h2>
         <p>
-          Pastes with an expiry are deleted automatically when it passes. You can delete any paste you created from its page
-          with the <strong>PURGE</strong> button. Clearing your browser data loses your identifier, and with it the ability to
-          delete older pastes.
+          Lo que tiene vencimiento se borra solo cuando vence. Podés borrar cualquier código tuyo desde su página con el botón{' '}
+          <strong>Eliminar</strong>. Si borrás los datos del navegador perdés tu identificador y, con él, la posibilidad de
+          borrar lo que publicaste antes (salvo que hayas guardado el código de "Seguí en otro dispositivo").
         </p>
       </section>
       <section>
-        <h2>Code runner</h2>
+        <h2>Ejecutor de código</h2>
         <p>
-          Code you run executes only in your browser, inside an isolated sandbox with no access to this site, its storage
-          or your cookies, and it cannot open pop-ups or redirect the page. It is never sent to our servers.
+          El código que ejecutás corre solo en tu navegador, dentro de un entorno aislado que no tiene acceso a este sitio,
+          a su almacenamiento ni a tus cookies, y que no puede abrir ventanas ni redirigir la página. Nunca se manda a
+          nuestros servidores.
         </p>
       </section>
     </InfoPage>
@@ -85,32 +88,43 @@ export function Privacy() {
 
 export function Terms() {
   return (
-    <InfoPage title="Terms of use" subtitle="Short and simple">
+    <InfoPage title="Términos de uso" subtitle="Cortos y simples">
       <section>
-        <h2>Acceptable use</h2>
+        <h2>Uso aceptable</h2>
         <p>
-          Share code and text you have the right to share. Do not upload malware, illegal content, credentials or other
-          people&apos;s personal data. Abusive content may be removed without notice.
+          Compartí código y textos que tengas derecho a compartir. No subas malware, contenido ilegal, credenciales ni datos
+          personales de otras personas. El contenido abusivo se puede borrar sin aviso.
         </p>
       </section>
       <section>
-        <h2>Running code</h2>
+        <h2>Ejecutar código</h2>
         <p>
-          Only run code you understand. The runner is sandboxed, but code can still make network requests from your browser.
+          Ejecutá solo código que entiendas. El ejecutor está aislado, pero el código igual puede hacer pedidos a internet
+          desde tu navegador.
         </p>
       </section>
       <section>
-        <h2>No warranty</h2>
+        <h2>Cursos y certificados</h2>
         <p>
-          Pestle is provided as-is, without guarantees of availability or persistence. Keep your own copy of anything
-          important. Snippets in the code library are provided under the MIT license.
+          Los cursos son gratuitos. Los certificados de Pestle acreditan que terminaste un curso de esta plataforma; no son
+          títulos oficiales. Pedir un certificado con un nombre falso o sin haber hecho el curso va en contra de estos
+          términos.
         </p>
       </section>
       <section>
-        <h2>Limits</h2>
+        <h2>Sin garantías</h2>
         <p>
-          Each paste can be up to 512&nbsp;KB and titles up to 200 characters. The API allows 20 new pastes per 10 minutes
-          and 300 reads per minute per IP address; above that it answers <code>429 Too Many Requests</code>.
+          Pestle se ofrece tal como está, sin garantías de que esté siempre disponible ni de que los datos se conserven.
+          Guardá tu propia copia de lo que sea importante. Los ejemplos de la biblioteca de códigos se ofrecen con licencia
+          MIT.
+        </p>
+      </section>
+      <section>
+        <h2>Límites</h2>
+        <p>
+          Cada código puede pesar hasta 512&nbsp;KB y los títulos pueden tener hasta 200 caracteres. La API permite 20
+          publicaciones cada 10 minutos y 300 lecturas por minuto por dirección IP; por encima de eso responde{' '}
+          <code>429 Too Many Requests</code>.
         </p>
       </section>
     </InfoPage>
@@ -121,42 +135,48 @@ const ENDPOINTS: { method: string; path: string; description: string; example: s
   {
     method: 'GET',
     path: '/api/health',
-    description: 'Service status and whether persistent storage is connected.',
+    description: 'Estado del servicio y si la base de datos está conectada.',
     example: `curl ${location.origin}/api/health`,
   },
   {
     method: 'POST',
     path: '/api/pastes',
     description:
-      'Create a paste. Body: { content, language, title?, isPublic?, expiresIn? }. language is one of javascript, typescript, python, html, css, json, markdown, text; expiresIn is never, 1h, 1d or 1w. Send x-owner-id (any random string of 16+ chars) to be able to list and delete it later.',
+      'Publica un código. Cuerpo: { content, language, title?, isPublic?, expiresIn? }. language puede ser javascript, typescript, python, html, css, json, markdown o text; expiresIn puede ser never, 1h, 1d o 1w. Mandá x-owner-id (cualquier texto al azar de 16 caracteres o más) para poder listarlo y borrarlo después.',
     example: `curl -X POST ${location.origin}/api/pastes \\
   -H 'content-type: application/json' \\
-  -H 'x-owner-id: my-secret-owner-id-123' \\
+  -H 'x-owner-id: mi-identificador-secreto-123' \\
   -d '{"content":"console.log(42)","language":"javascript","expiresIn":"1d"}'`,
   },
   {
     method: 'GET',
     path: '/api/pastes/:id',
-    description: 'Get a paste as JSON. Add ?raw=1 for plain text, ideal for curl or scripts.',
+    description: 'Devuelve un código en JSON. Agregá ?raw=1 para recibir texto plano, ideal para curl o scripts.',
     example: `curl ${location.origin}/api/pastes/ID?raw=1`,
   },
   {
     method: 'GET',
     path: '/api/pastes?scope=public',
-    description: 'Latest 50 public pastes (content truncated to a preview).',
+    description: 'Los últimos 50 códigos públicos (con el contenido recortado como vista previa).',
     example: `curl '${location.origin}/api/pastes?scope=public'`,
   },
   {
     method: 'GET',
     path: '/api/pastes',
-    description: 'Your own pastes, identified by the x-owner-id header.',
-    example: `curl ${location.origin}/api/pastes -H 'x-owner-id: my-secret-owner-id-123'`,
+    description: 'Tus propios códigos, identificados por el encabezado x-owner-id.',
+    example: `curl ${location.origin}/api/pastes -H 'x-owner-id: mi-identificador-secreto-123'`,
   },
   {
     method: 'DELETE',
     path: '/api/pastes/:id',
-    description: 'Delete a paste. Only works with the same x-owner-id used to create it.',
-    example: `curl -X DELETE ${location.origin}/api/pastes/ID -H 'x-owner-id: my-secret-owner-id-123'`,
+    description: 'Borra un código. Solo funciona con el mismo x-owner-id que se usó para crearlo.',
+    example: `curl -X DELETE ${location.origin}/api/pastes/ID -H 'x-owner-id: mi-identificador-secreto-123'`,
+  },
+  {
+    method: 'GET',
+    path: '/api/certificates?id=PY-XXXX-XXXX-XXXX',
+    description: 'Verifica un certificado: devuelve el nombre, el curso, la fecha, el proyecto final y si es válido.',
+    example: `curl '${location.origin}/api/certificates?id=PY-XXXX-XXXX-XXXX'`,
   },
 ];
 
@@ -168,11 +188,12 @@ const METHOD_TONES: Record<string, string> = {
 
 export function ApiDocs() {
   return (
-    <InfoPage title="API" subtitle="Use Pestle from your terminal or scripts">
+    <InfoPage title="API" subtitle="Usá Pestle desde la terminal o tus programas">
       <p>
-        Everything the web app does is available as a JSON API. Responses are JSON unless you request <code>?raw=1</code>.
-        Errors return <code>{'{ "error": "..." }'}</code> with a 4xx/5xx status. <code>POST</code> requires{' '}
-        <code>content-type: application/json</code>. Rate limits: 20 creates / 10&nbsp;min and 300 reads / min per IP.
+        Todo lo que hace la página está disponible como API JSON. Las respuestas son JSON salvo que pidas{' '}
+        <code>?raw=1</code>. Los errores devuelven <code>{'{ "error": "..." }'}</code> con un estado 4xx/5xx. Los{' '}
+        <code>POST</code> necesitan <code>content-type: application/json</code>. Límites: 20 publicaciones cada 10&nbsp;min
+        y 300 lecturas por minuto por IP.
       </p>
       {ENDPOINTS.map((e) => (
         <section key={e.method + e.path} className="overflow-hidden rounded-xl border border-line bg-surface shadow-card">
@@ -193,11 +214,11 @@ export function NotFound() {
     <div className="flex h-[55vh] flex-col items-center justify-center gap-4 text-center animate-fade-up">
       <p className="font-mono text-7xl font-bold text-line-strong">404</p>
       <div className="space-y-1">
-        <h1 className="text-xl font-semibold">Page not found</h1>
-        <p className="text-muted">The page you're looking for doesn't exist or was moved.</p>
+        <h1 className="text-xl font-semibold">Página no encontrada</h1>
+        <p className="text-muted">La página que buscás no existe o se movió.</p>
       </div>
       <Link to="/" className={buttonClass('primary')}>
-        Back to home
+        Volver al inicio
       </Link>
     </div>
   );

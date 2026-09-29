@@ -26,7 +26,7 @@ export const GET = safe(async (request) => {
   if (limited) return limited;
   const id = idFrom(request);
   const paste = id ? await redis.get<StoredPaste>(pasteKey(id)) : null;
-  if (!paste) return json({ error: 'Not found' }, 404);
+  if (!paste) return json({ error: 'No encontrado' }, 404);
 
   if (new URL(request.url).searchParams.has('raw')) {
     return new Response(paste.content, {
@@ -44,10 +44,10 @@ export const DELETE = safe(async (request) => {
   if (limited) return limited;
   const id = idFrom(request);
   const paste = id ? await redis.get<StoredPaste>(pasteKey(id)) : null;
-  if (!id || !paste) return json({ error: 'Not found' }, 404);
+  if (!id || !paste) return json({ error: 'No encontrado' }, 404);
 
   const ownerHash = await ownerHashFrom(request);
-  if (!ownerHash || paste.ownerHash !== ownerHash) return json({ error: 'Forbidden' }, 403);
+  if (!ownerHash || paste.ownerHash !== ownerHash) return json({ error: 'No tenés permiso para hacer eso' }, 403);
 
   const tx = redis.multi();
   tx.del(pasteKey(id));

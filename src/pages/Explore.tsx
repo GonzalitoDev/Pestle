@@ -27,17 +27,17 @@ export default function Explore() {
     <div className="space-y-6 animate-fade-up">
       <PageHeader
         icon={Globe}
-        title="Explore"
-        description="The latest public pastes. Unlisted pastes never appear here."
+        title="Explorar"
+        description="Lo último que se publicó como público. Lo oculto nunca aparece acá."
         actions={
           <Button icon={RefreshCw} onClick={load} disabled={loading} className={loading ? '[&>svg]:animate-spin' : ''}>
-            Refresh
+            Actualizar
           </Button>
         }
       />
 
       {error ? (
-        <EmptyState icon={AlertCircle} title="Could not load the feed" description={error} />
+        <EmptyState icon={AlertCircle} title="No se pudo cargar" description={error} />
       ) : loading && pastes.length === 0 ? (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {[1, 2, 3, 4].map((i) => (
@@ -47,11 +47,11 @@ export default function Explore() {
       ) : pastes.length === 0 ? (
         <EmptyState
           icon={Inbox}
-          title="No public pastes yet"
-          description="Publish something with visibility set to Public and it will show up here."
+          title="Todavía no hay nada público"
+          description="Publicá algo con visibilidad Público y va a aparecer acá."
           action={
             <Link to="/" className={buttonClass('primary')}>
-              Publish the first one
+              Publicar el primero
             </Link>
           }
         />
@@ -64,7 +64,7 @@ export default function Explore() {
               className="group flex flex-col overflow-hidden rounded-xl border border-line bg-surface shadow-card transition-all hover:-translate-y-0.5 hover:border-line-strong"
             >
               <div className="flex items-center justify-between gap-3 px-4 pt-4">
-                <p className="truncate font-medium group-hover:text-accent">{paste.title || 'Untitled paste'}</p>
+                <p className="truncate font-medium group-hover:text-accent">{paste.title || 'Sin título'}</p>
                 <LanguageBadge language={paste.language} />
               </div>
               <pre className="relative m-4 h-32 overflow-hidden rounded-lg bg-surface-2 p-3 font-mono text-xs leading-relaxed text-muted">
@@ -73,7 +73,7 @@ export default function Explore() {
               </pre>
               <div className="flex items-center justify-between px-4 pb-4 text-xs text-muted">
                 <span>{timeAgo(paste.createdAt)}</span>
-                <span>{paste.isOwner ? 'By you' : paste.author ? `Anonymous #${paste.author.substring(0, 5)}` : 'Anonymous'}</span>
+                <span>{paste.isOwner ? 'Tuyo' : paste.author ? `Anónimo #${paste.author.substring(0, 5)}` : 'Anónimo'}</span>
               </div>
             </Link>
           ))}

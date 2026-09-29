@@ -51,7 +51,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 aria-hidden
               />
               <p className="flex-1 break-words">{t.message}</p>
-              <button onClick={() => dismiss(t.id)} className="text-muted hover:text-fg" aria-label="Dismiss">
+              <button onClick={() => dismiss(t.id)} className="text-muted hover:text-fg" aria-label="Cerrar aviso">
                 <X className="size-4" />
               </button>
             </div>

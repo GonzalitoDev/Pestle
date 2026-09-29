@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatDate(timestamp: number) {
-  return new Date(timestamp).toLocaleDateString('en-US', {
+  return new Date(timestamp).toLocaleDateString('es-AR', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -71,7 +71,7 @@ export async function copyText(text: string) {
 /** "3 minutes ago", "in 2 days"… */
 export function timeAgo(timestamp: number) {
   const seconds = Math.round((timestamp - Date.now()) / 1000);
-  const rtf = new Intl.RelativeTimeFormat('en', { numeric: 'auto' });
+  const rtf = new Intl.RelativeTimeFormat('es', { numeric: 'auto' });
   const units: [Intl.RelativeTimeFormatUnit, number][] = [
     ['year', 31536000],
     ['month', 2592000],
@@ -83,5 +83,5 @@ export function timeAgo(timestamp: number) {
   for (const [unit, size] of units) {
     if (Math.abs(seconds) >= size) return rtf.format(Math.trunc(seconds / size), unit);
   }
-  return 'just now';
+  return 'recién';
 }

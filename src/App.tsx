@@ -33,18 +33,18 @@ const NotFound = lazy(() => import('./pages/Info').then((m) => ({ default: m.Not
 const REPO_URL = 'https://github.com/gonzalitodev/pestesting';
 
 const NAV_ITEMS = [
-  { to: '/', label: 'New paste', icon: Plus, end: true },
-  { to: '/codes', label: 'Library', icon: Library, end: false },
+  { to: '/', label: 'Nuevo', icon: Plus, end: true },
+  { to: '/codes', label: 'Biblioteca', icon: Library, end: false },
   { to: '/cursos', label: 'Cursos', icon: GraduationCap, end: false },
-  { to: '/explore', label: 'Explore', icon: Globe, end: false },
-  { to: '/dashboard', label: 'My pastes', icon: FolderOpen, end: false },
+  { to: '/explore', label: 'Explorar', icon: Globe, end: false },
+  { to: '/dashboard', label: 'Mis códigos', icon: FolderOpen, end: false },
 ];
 
 const THEME_ORDER: ThemePreference[] = ['system', 'light', 'dark'];
 const THEME_META: Record<ThemePreference, { icon: typeof Sun; label: string }> = {
-  system: { icon: Monitor, label: 'System' },
-  light: { icon: Sun, label: 'Light' },
-  dark: { icon: Moon, label: 'Dark' },
+  system: { icon: Monitor, label: 'Sistema' },
+  light: { icon: Sun, label: 'Claro' },
+  dark: { icon: Moon, label: 'Oscuro' },
 };
 
 function ThemeToggle({ withLabel = false }: { withLabel?: boolean }) {
@@ -54,12 +54,12 @@ function ThemeToggle({ withLabel = false }: { withLabel?: boolean }) {
   return (
     <button
       onClick={() => setPreference(next)}
-      aria-label={`Theme: ${label}. Switch to ${THEME_META[next].label}`}
-      title={`Theme: ${label}`}
+      aria-label={`Tema: ${label}. Cambiar a ${THEME_META[next].label}`}
+      title={`Tema: ${label}`}
       className="inline-flex h-9 items-center gap-2 rounded-lg px-2.5 text-muted hover:bg-surface-2 hover:text-fg transition-colors"
     >
       <Icon className="size-[18px]" aria-hidden />
-      {withLabel && <span className="text-sm">Theme: {label}</span>}
+      {withLabel && <span className="text-sm">Tema: {label}</span>}
     </button>
   );
 }
@@ -101,7 +101,7 @@ export default function App() {
       <ToastProvider>
         <RouteEffects onNavigate={() => setMenuOpen(false)} />
         <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] rounded-lg bg-surface px-4 py-2 shadow-card">
-          Skip to content
+          Saltar al contenido
         </a>
         {/* Solid backdrop behind the Android status bar (height is 0 on the web). */}
         <div aria-hidden className="fixed inset-x-0 top-0 z-[60] h-[var(--safe-top)] bg-bg" />
@@ -109,14 +109,14 @@ export default function App() {
           {isMock && (
             <div className="flex items-center justify-center gap-2 border-b border-warn/20 bg-warn-soft px-4 py-1.5 text-xs text-warn">
               <AlertTriangle className="size-3.5 shrink-0" aria-hidden />
-              <span>Offline mode: no database connected, pastes are only saved in this browser.</span>
+              <span>Modo sin conexión: no hay base de datos, los códigos se guardan solo en este navegador.</span>
             </div>
           )}
 
-          <nav className="sticky top-[var(--safe-top)] z-50 border-b border-line bg-bg/80 backdrop-blur-md" aria-label="Main">
+          <nav className="sticky top-[var(--safe-top)] z-50 border-b border-line bg-bg/80 backdrop-blur-md" aria-label="Principal">
             <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
               <div className="flex items-center gap-6">
-                <Link to="/" className="flex items-center gap-2 font-semibold tracking-tight" aria-label="Pestle home">
+                <Link to="/" className="flex items-center gap-2 font-semibold tracking-tight" aria-label="Pestle: inicio">
                   <span className="grid size-8 place-items-center rounded-lg bg-fg text-bg">
                     <Terminal className="size-4" aria-hidden />
                   </span>
@@ -133,14 +133,14 @@ export default function App() {
 
               <div className="flex items-center gap-1">
                 <ApkLink className="hidden sm:inline-flex h-9 items-center gap-2 rounded-lg border border-line bg-surface px-3 text-sm font-medium hover:border-line-strong hover:bg-surface-2 transition-colors mr-1">
-                  <Smartphone className="size-4 text-success" aria-hidden /> Get the app
+                  <Smartphone className="size-4 text-success" aria-hidden /> Bajá la app
                 </ApkLink>
                 <ThemeToggle />
                 <a
                   href={REPO_URL}
                   target="_blank"
                   rel="noreferrer"
-                  aria-label="Source code on GitHub"
+                  aria-label="Código fuente en GitHub"
                   className="hidden sm:inline-flex h-9 items-center rounded-lg px-2.5 text-muted hover:bg-surface-2 hover:text-fg transition-colors"
                 >
                   <Github className="size-[18px]" aria-hidden />
@@ -148,7 +148,7 @@ export default function App() {
                 <button
                   onClick={() => setMenuOpen((o) => !o)}
                   className="lg:hidden inline-flex h-9 items-center rounded-lg px-2.5 text-fg hover:bg-surface-2"
-                  aria-label="Toggle menu"
+                  aria-label="Abrir o cerrar el menú"
                   aria-expanded={menuOpen}
                 >
                   {menuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
@@ -174,10 +174,10 @@ export default function App() {
                   </NavLink>
                 ))}
                 <ApkLink className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-success">
-                  <Smartphone className="size-4" aria-hidden /> Download Android app (APK)
+                  <Smartphone className="size-4" aria-hidden /> Descargar la app para Android (APK)
                 </ApkLink>
                 <a href={REPO_URL} target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted hover:text-fg">
-                  <Github className="size-4" aria-hidden /> Source code
+                  <Github className="size-4" aria-hidden /> Código fuente
                 </a>
               </div>
             )}
@@ -215,11 +215,11 @@ export default function App() {
           <footer className="border-t border-line">
             <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-muted sm:flex-row sm:px-6">
               <p>
-                <span className="font-medium text-fg">Pestle</span> · share and run code in your browser
+                <span className="font-medium text-fg">Pestle</span> · compartí y ejecutá código en tu navegador
               </p>
               <div className="flex flex-wrap justify-center gap-5">
-                <Link to="/privacy" className="hover:text-fg">Privacy</Link>
-                <Link to="/terms" className="hover:text-fg">Terms</Link>
+                <Link to="/privacy" className="hover:text-fg">Privacidad</Link>
+                <Link to="/terms" className="hover:text-fg">Términos</Link>
                 <Link to="/api-docs" className="hover:text-fg">API</Link>
                 <a href={REPO_URL} target="_blank" rel="noreferrer" className="hover:text-fg">GitHub</a>
               </div>

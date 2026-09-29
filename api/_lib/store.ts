@@ -126,7 +126,7 @@ export async function rateLimit(request: Request, bucket: string, limit: number,
   if (count === 1) await redis.expire(key, windowSeconds);
   if (count <= limit) return null;
   const retryAfter = (window + 1) * windowSeconds - Math.floor(Date.now() / 1000);
-  return json({ error: 'Too many requests. Try again later.' }, 429, { 'retry-after': String(retryAfter) });
+  return json({ error: 'Demasiados pedidos. Probá de nuevo más tarde.' }, 429, { 'retry-after': String(retryAfter) });
 }
 
 /**
@@ -165,7 +165,7 @@ export function safe(handler: (request: Request) => Promise<Response>) {
       response = await handler(request);
     } catch (err) {
       console.error(err);
-      response = json({ error: 'Internal error' }, 500);
+      response = json({ error: 'Error interno' }, 500);
     }
     for (const [key, value] of Object.entries(corsHeaders(request))) response.headers.set(key, value);
     return response;
@@ -173,7 +173,7 @@ export function safe(handler: (request: Request) => Promise<Response>) {
 }
 
 export function storageUnavailable() {
-  return json({ error: 'Storage not configured. Connect an Upstash Redis database to this Vercel project.' }, 503);
+  return json({ error: 'No hay base de datos configurada. Conectá una base Upstash Redis a este proyecto de Vercel.' }, 503);
 }
 
 /** Public shape of a paste: never leaks the owner hash, only whether the caller owns it. */

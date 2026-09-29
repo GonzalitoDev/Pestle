@@ -32,7 +32,7 @@ export const GET = safe(async (request) => {
   if (limited) return limited;
   const ownerHash = await ownerHashFrom(request);
   const isPublicFeed = new URL(request.url).searchParams.get('scope') === 'public';
-  if (!isPublicFeed && !ownerHash) return json({ error: 'Missing x-owner-id header' }, 400);
+  if (!isPublicFeed && !ownerHash) return json({ error: 'Falta el encabezado x-owner-id' }, 400);
 
   const listKey = isPublicFeed ? PUBLIC_FEED_KEY : ownerKey(ownerHash!);
   const ids = await redis.zrange<string[]>(listKey, 0, 49, { rev: true });
@@ -61,10 +61,10 @@ const MAX_BODY_BYTES = MAX_CONTENT_BYTES * 6 + 4096;
 export const POST = safe(async (request) => {
   if (!redis) return storageUnavailable();
   if (!request.headers.get('content-type')?.toLowerCase().startsWith('application/json')) {
-    return json({ error: 'content-type must be application/json' }, 415);
+    return json({ error: 'El content-type tiene que ser application/json' }, 415);
   }
   if (Number(request.headers.get('content-length') ?? 0) > MAX_BODY_BYTES) {
-    return json({ error: 'Request body too large' }, 413);
+    return json({ error: 'El pedido es demasiado grande' }, 413);
   }
   const limited = await rateLimit(request, 'create', 20, 600);
   if (limited) return limited;
@@ -72,24 +72,24 @@ export const POST = safe(async (request) => {
   let body: Record<string, unknown>;
   try {
     const text = await request.text();
-    if (text.length > MAX_BODY_BYTES) return json({ error: 'Request body too large' }, 413);
+    if (text.length > MAX_BODY_BYTES) return json({ error: 'El pedido es demasiado grande' }, 413);
     body = JSON.parse(text);
     if (!body || typeof body !== 'object' || Array.isArray(body)) throw new Error('not an object');
   } catch {
-    return json({ error: 'Invalid JSON body' }, 400);
+    return json({ error: 'El cuerpo no es un JSON válido' }, 400);
   }
 
   const { content, title, language, isPublic, expiresIn = 'never' } = body;
-  if (typeof content !== 'string' || !content.trim()) return json({ error: 'content is required' }, 400);
-  if (new TextEncoder().encode(content).length > MAX_CONTENT_BYTES) return json({ error: 'content exceeds 512KB' }, 413);
+  if (typeof content !== 'string' || !content.trim()) return json({ error: 'Falta el contenido' }, 400);
+  if (new TextEncoder().encode(content).length > MAX_CONTENT_BYTES) return json({ error: 'El contenido supera los 512 KB' }, 413);
   if (title !== undefined && (typeof title !== 'string' || title.length > MAX_TITLE_LENGTH)) {
-    return json({ error: `title must be a string of at most ${MAX_TITLE_LENGTH} characters` }, 400);
+    return json({ error: `El título tiene que ser un texto de hasta ${MAX_TITLE_LENGTH} caracteres` }, 400);
   }
-  if (!LANGUAGES.includes(language as StoredPaste['language'])) return json({ error: 'unsupported language' }, 400);
+  if (!LANGUAGES.includes(language as StoredPaste['language'])) return json({ error: 'Ese lenguaje no está soportado' }, 400);
   if (typeof expiresIn !== 'string' || !Object.hasOwn(EXPIRY_OPTIONS, expiresIn)) {
-    return json({ error: 'invalid expiresIn' }, 400);
+    return json({ error: 'El vencimiento (expiresIn) no es válido' }, 400);
   }
-  if (isPublic !== undefined && typeof isPublic !== 'boolean') return json({ error: 'isPublic must be a boolean' }, 400);
+  if (isPublic !== undefined && typeof isPublic !== 'boolean') return json({ error: 'isPublic tiene que ser true o false' }, 400);
 
   const ttl = EXPIRY_OPTIONS[expiresIn];
   const ownerHash = await ownerHashFrom(request);

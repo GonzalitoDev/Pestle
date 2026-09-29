@@ -32,11 +32,11 @@ export default function Dashboard() {
     <div className="space-y-6 animate-fade-up">
       <PageHeader
         icon={FolderOpen}
-        title="My pastes"
-        description="Pastes created from this browser. Only you can delete them."
+        title="Mis códigos"
+        description="Lo que publicaste desde este navegador. Solo vos podés borrarlo."
         actions={
           <Link to="/" className={buttonClass('primary')}>
-            <Plus className="size-4" aria-hidden /> New paste
+            <Plus className="size-4" aria-hidden /> Nuevo
           </Link>
         }
       />
@@ -48,15 +48,15 @@ export default function Dashboard() {
           ))}
         </div>
       ) : error ? (
-        <EmptyState icon={AlertCircle} title="Could not load your pastes" description={error} />
+        <EmptyState icon={AlertCircle} title="No se pudieron cargar tus códigos" description={error} />
       ) : pastes.length === 0 ? (
         <EmptyState
           icon={FileCode}
-          title="No pastes yet"
-          description="Everything you publish from this browser shows up here."
+          title="Todavía no publicaste nada"
+          description="Todo lo que publiques desde este navegador aparece acá."
           action={
             <Link to="/" className={buttonClass('primary')}>
-              Create your first paste
+              Publicar el primero
             </Link>
           }
         />
@@ -69,7 +69,7 @@ export default function Dashboard() {
                 type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search your pastes"
+                placeholder="Buscar en tus códigos"
                 className="w-full bg-transparent text-sm outline-none placeholder:text-muted"
               />
             </label>
@@ -85,18 +85,18 @@ export default function Dashboard() {
                   <FileCode className="size-5 text-muted" aria-hidden />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium group-hover:text-accent">{paste.title || 'Untitled paste'}</p>
+                  <p className="truncate font-medium group-hover:text-accent">{paste.title || 'Sin título'}</p>
                   <p className="truncate font-mono text-xs text-muted">{paste.content.split('\n')[0]}</p>
                 </div>
                 <div className="hidden sm:flex items-center gap-2">
                   <LanguageBadge language={paste.language} />
                   {paste.isPublic ? (
                     <Badge tone="accent">
-                      <Globe className="size-3" /> Public
+                      <Globe className="size-3" /> Público
                     </Badge>
                   ) : (
                     <Badge>
-                      <Link2 className="size-3" /> Unlisted
+                      <Link2 className="size-3" /> Oculto
                     </Badge>
                   )}
                   {paste.expiresAt && (
@@ -108,10 +108,10 @@ export default function Dashboard() {
                 <span className="shrink-0 text-xs text-muted w-24 text-right">{timeAgo(paste.createdAt)}</span>
               </Link>
             ))}
-            {filtered.length === 0 && <p className="px-4 py-8 text-center text-sm text-muted">No pastes match “{query}”.</p>}
+            {filtered.length === 0 && <p className="px-4 py-8 text-center text-sm text-muted">Nada coincide con “{query}”.</p>}
           </Card>
           <p className="text-xs text-muted">
-            {pastes.length} {pastes.length === 1 ? 'paste' : 'pastes'}
+            {pastes.length} {pastes.length === 1 ? 'código' : 'códigos'}
           </p>
         </>
       )}

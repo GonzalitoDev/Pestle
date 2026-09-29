@@ -78,7 +78,7 @@ export const GET = safe(async (request) => {
   const limited = await rateLimit(request, 'read', 300, 60);
   if (limited) return limited;
   const ownerHash = await ownerHashFrom(request);
-  if (!ownerHash) return json({ error: 'Missing x-owner-id header' }, 400);
+  if (!ownerHash) return json({ error: 'Falta el encabezado x-owner-id' }, 400);
   const stored = await redis.get<Progress>(progressKey(ownerHash));
   return json(stored ? sanitize(stored) : empty());
 });
@@ -86,23 +86,23 @@ export const GET = safe(async (request) => {
 export const POST = safe(async (request) => {
   if (!redis) return storageUnavailable();
   if (!request.headers.get('content-type')?.toLowerCase().startsWith('application/json')) {
-    return json({ error: 'content-type must be application/json' }, 415);
+    return json({ error: 'El content-type tiene que ser application/json' }, 415);
   }
   if (Number(request.headers.get('content-length') ?? 0) > MAX_BODY_BYTES) {
-    return json({ error: 'Request body too large' }, 413);
+    return json({ error: 'El pedido es demasiado grande' }, 413);
   }
   const limited = await rateLimit(request, 'progress', 240, 600);
   if (limited) return limited;
   const ownerHash = await ownerHashFrom(request);
-  if (!ownerHash) return json({ error: 'Missing x-owner-id header' }, 400);
+  if (!ownerHash) return json({ error: 'Falta el encabezado x-owner-id' }, 400);
 
   let incoming: Progress;
   try {
     const text = await request.text();
-    if (text.length > MAX_BODY_BYTES) return json({ error: 'Request body too large' }, 413);
+    if (text.length > MAX_BODY_BYTES) return json({ error: 'El pedido es demasiado grande' }, 413);
     incoming = sanitize(JSON.parse(text));
   } catch {
-    return json({ error: 'Invalid JSON body' }, 400);
+    return json({ error: 'El cuerpo no es un JSON válido' }, 400);
   }
 
   const key = progressKey(ownerHash);
