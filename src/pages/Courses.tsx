@@ -117,6 +117,12 @@ export default function Courses() {
                 )}
               </Link>
 
+              {projectDone && (
+                <Link to={`/cursos/${course.id}/certificado`} className={buttonClass('success', 'md', 'mt-2')}>
+                  <Award className="size-4" aria-hidden /> Ver mi certificado
+                </Link>
+              )}
+
               <details className="mt-4 text-sm">
                 <summary className="cursor-pointer text-muted hover:text-fg">Ver temario</summary>
                 <ol className="mt-3 space-y-1">
@@ -158,6 +164,14 @@ export default function Courses() {
       </div>
 
       <ProgressSync />
+
+      <p className="text-sm text-muted">
+        ¿Te mostraron un certificado de Pestle?{' '}
+        <Link to="/certificado" className="text-accent hover:underline">
+          Verificalo acá
+        </Link>
+        .
+      </p>
 
       <p className="text-sm text-muted">
         Python corre dentro de tu navegador (con Pyodide): la primera vez que ejecutes código tarda unos segundos en cargar.

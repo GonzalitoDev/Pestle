@@ -54,6 +54,7 @@ export const redis = url && token ? new Redis({ url, token }) : null;
 
 export const pasteKey = (id: string) => `paste:${id}`;
 export const ownerKey = (ownerHash: string) => `owner:${ownerHash}`;
+export const progressKey = (ownerHash: string) => `progress:${ownerHash}`;
 export const PUBLIC_FEED_KEY = 'feed:public';
 export const PUBLIC_FEED_SIZE = 100;
 

@@ -42,6 +42,14 @@ export function Privacy() {
         </p>
       </section>
       <section>
+        <h2>Certificates</h2>
+        <p>
+          When you finish a course you can ask for a certificate. It stores the name you type, the course, the date and a
+          copy of your final project. Certificates are public by design: anyone with the code or the QR can open the
+          verification page and see that information. They are kept permanently so they keep verifying.
+        </p>
+      </section>
+      <section>
         <h2>Abuse protection</h2>
         <p>
           To stop spam, the API counts requests per IP address. The IP is never stored as-is: only a keyed hash is kept,
