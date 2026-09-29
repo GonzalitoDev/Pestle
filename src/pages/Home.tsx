@@ -42,11 +42,11 @@ export default function Home() {
         isPublic: visibility === 'public',
         expiresIn,
       });
-      toast('Paste published — link ready to share');
+      toast('Código publicado: el enlace está listo para compartir');
       navigate(`/paste/${pasteId}`);
     } catch (err) {
       console.error(err);
-      toast(`Could not publish: ${err instanceof Error ? err.message : err}`, 'error');
+      toast(`No se pudo publicar: ${err instanceof Error ? err.message : err}`, 'error');
     } finally {
       setLoading(false);
     }
@@ -62,7 +62,7 @@ export default function Home() {
     const guess = detectLanguage(e.clipboardData.getData('text'));
     if (guess && guess !== language) {
       setLanguage(guess);
-      toast(`Detected ${labelOf(guess)}`, 'info');
+      toast(`Detectamos ${labelOf(guess)}`, 'info');
     }
   };
 
@@ -84,9 +84,9 @@ export default function Home() {
   return (
     <div className="space-y-8 animate-fade-up">
       <header className="space-y-2">
-        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">Share code in seconds</h1>
+        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">Compartí código en segundos</h1>
         <p className="text-muted max-w-2xl">
-          Paste code or text, test it right here, and get a link. No account needed.
+          Pegá código o texto, probalo acá mismo y obtené un enlace. Sin crear una cuenta.
         </p>
       </header>
 
@@ -96,8 +96,8 @@ export default function Home() {
             <div className="flex items-center gap-3 border-b border-line px-4 py-2.5">
               <input
                 type="text"
-                aria-label="Title"
-                placeholder="Untitled paste"
+                aria-label="Título"
+                placeholder="Sin título"
                 maxLength={200}
                 className="w-full bg-transparent text-sm font-medium outline-none placeholder:text-muted"
                 value={title}
@@ -108,9 +108,9 @@ export default function Home() {
               </span>
             </div>
             <textarea
-              aria-label="Paste content"
+              aria-label="Contenido"
               className="block h-[440px] w-full resize-y bg-surface p-5 font-mono text-[13px] leading-relaxed outline-none placeholder:text-muted/70"
-              placeholder="Paste your code or text here…"
+              placeholder="Pegá tu código o texto acá…"
               value={content}
               onChange={(e) => setContent(e.target.value)}
               onPaste={handlePaste}
@@ -120,10 +120,10 @@ export default function Home() {
             />
             <div className="flex items-center justify-between gap-2 border-t border-line bg-surface-2/60 px-4 py-2 text-xs text-muted">
               <span>
-                {lines} {lines === 1 ? 'line' : 'lines'} · {content.length.toLocaleString()} characters
+                {lines} {lines === 1 ? 'línea' : 'líneas'} · {content.length.toLocaleString('es-AR')} caracteres
               </span>
               <span className="hidden sm:flex items-center gap-1.5">
-                <Kbd>Tab</Kbd> indent · <Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> publish
+                <Kbd>Tab</Kbd> sangría · <Kbd>Ctrl</Kbd>+<Kbd>Enter</Kbd> publicar
               </span>
             </div>
           </Card>
@@ -133,11 +133,11 @@ export default function Home() {
               <span className="flex items-center gap-2">
                 <Wand2 className="size-4 shrink-0 text-accent" aria-hidden />
                 <span>
-                  This looks like <strong>{labelOf(mismatch)}</strong>, but the language is set to {labelOf(language)}.
+                  Parece <strong>{labelOf(mismatch)}</strong>, pero el lenguaje elegido es {labelOf(language)}.
                 </span>
               </span>
               <Button size="sm" variant="accent" onClick={() => setLanguage(mismatch)}>
-                Switch to {labelOf(mismatch)}
+                Cambiar a {labelOf(mismatch)}
               </Button>
             </div>
           )}
@@ -147,14 +147,14 @@ export default function Home() {
               <CodeRunner code={content} language={language} onClose={() => setRunning(false)} />
             ) : (
               <Button variant="success" icon={Play} disabled={!content.trim()} onClick={() => setRunning(true)}>
-                Test run
+                Probar
               </Button>
             ))}
         </div>
 
         <aside className="space-y-4">
           <Card className="p-5 space-y-5 lg:sticky lg:top-24">
-            <Field label="Language" htmlFor="language">
+            <Field label="Lenguaje" htmlFor="language">
               <Select id="language" value={language} onChange={(e) => setLanguage(e.target.value as Language)}>
                 {LANGUAGES.map((lang) => (
                   <option key={lang.value} value={lang.value}>
@@ -164,7 +164,7 @@ export default function Home() {
               </Select>
             </Field>
 
-            <Field label="Expires" htmlFor="expires">
+            <Field label="Vence" htmlFor="expires">
               <Select id="expires" value={expiresIn} onChange={(e) => setExpiresIn(e.target.value as Expiry)}>
                 {EXPIRIES.map((exp) => (
                   <option key={exp.value} value={exp.value}>
@@ -175,16 +175,16 @@ export default function Home() {
             </Field>
 
             <Field
-              label="Visibility"
-              hint={visibility === 'public' ? 'Listed in Explore for everyone.' : 'Only people with the link can see it.'}
+              label="Visibilidad"
+              hint={visibility === 'public' ? 'Aparece en Explorar para todo el mundo.' : 'Solo lo ve quien tenga el enlace.'}
             >
               <Segmented<"public" | "unlisted">
-                label="Visibility"
+                label="Visibilidad"
                 value={visibility}
                 onChange={setVisibility}
                 options={[
-                  { value: 'public', label: 'Public', icon: Globe },
-                  { value: 'unlisted', label: 'Unlisted', icon: Link2 },
+                  { value: 'public', label: 'Público', icon: Globe },
+                  { value: 'unlisted', label: 'Oculto', icon: Link2 },
                 ]}
               />
             </Field>
@@ -198,7 +198,7 @@ export default function Home() {
               disabled={!content.trim()}
               onClick={handlePublish}
             >
-              Publish paste
+              Publicar
             </Button>
           </Card>
 
@@ -209,25 +209,25 @@ export default function Home() {
                   <Smartphone className="size-5 text-success" aria-hidden />
                 </div>
                 <div className="text-sm">
-                  <p className="font-medium">Pestle for Android</p>
-                  <p className="text-muted">Editor, library and runner on your phone. Works offline too.</p>
+                  <p className="font-medium">Pestle para Android</p>
+                  <p className="text-muted">Editor, biblioteca, cursos y ejecutor en tu celular. También funciona sin internet.</p>
                 </div>
               </div>
               <ApkLink
                 className={buttonClass('success', 'md', 'w-full')}
-                fallback={<p className="rounded-lg bg-surface-2 px-3 py-2 text-center text-sm text-muted">The Android app is being built. Check back soon.</p>}
+                fallback={<p className="rounded-lg bg-surface-2 px-3 py-2 text-center text-sm text-muted">La app para Android se está generando. Volvé a fijarte en un rato.</p>}
               >
-                <Download className="size-4" aria-hidden /> Download APK
+                <Download className="size-4" aria-hidden /> Descargar APK
               </ApkLink>
-              <p className="text-xs text-muted">Android 7 or newer. When Android asks, allow installing from this source.</p>
+              <p className="text-xs text-muted">Android 7 o más nuevo. Cuando Android pregunte, permití instalar desde esta fuente.</p>
             </Card>
           )}
 
           <div className="flex gap-3 rounded-xl border border-line p-4 text-sm text-muted">
             <Sparkles className="size-4 shrink-0 text-accent mt-0.5" aria-hidden />
             <p>
-              Need inspiration? The <Link to="/codes" className="text-fg underline underline-offset-2">code library</Link> has
-              ready-to-run snippets you can edit and share.
+              ¿Buscás ideas? La <Link to="/codes" className="text-fg underline underline-offset-2">biblioteca de códigos</Link> tiene
+              ejemplos listos para ejecutar, editar y compartir.
             </p>
           </div>
         </aside>

@@ -61,7 +61,7 @@ const jsLiteral = (value: string) =>
   JSON.stringify(value).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
 
 const PYTHON_BOOT = `(async function () {
-  console.info('Loading Python… (the first run downloads the runtime, ~10 MB)');
+  console.info('Cargando Python… (la primera vez descarga unos 10 MB)');
   var code = __CODE__;
   var py;
   try {
@@ -73,7 +73,7 @@ const PYTHON_BOOT = `(async function () {
     });
     await py.loadPackagesFromImports(code, { messageCallback: function () {}, errorCallback: function () {} });
   } catch (e) {
-    console.error('Could not load Python: ' + (e && e.message ? e.message : e));
+    console.error('No se pudo cargar Python: ' + (e && e.message ? e.message : e));
     return;
   }
   try {
@@ -85,7 +85,7 @@ const PYTHON_BOOT = `(async function () {
     if (start < 0) start = mine('<exec>');
     console.error((start > 0 ? ['Traceback (most recent call last):'].concat(lines.slice(start)) : lines.slice(-6)).join('\\n'));
     if (/ModuleNotFoundError/.test(String(e))) {
-      console.warn('This package is not available in the browser. Run it locally with: python script.py');
+      console.warn('Este paquete no está disponible en el navegador. Ejecutalo en tu compu con: python script.py');
     }
   }
 })();`;
@@ -173,22 +173,22 @@ export default function CodeRunner({ code, language, demo, onClose, onLog, hideL
       <div className="flex items-center justify-between gap-2 border-b border-line px-4 py-2">
         <span className="flex items-center gap-2 text-sm font-medium">
           {showsPreview ? <Eye className="size-4 text-success" aria-hidden /> : <Play className="size-4 text-success" aria-hidden />}
-          {showsPreview ? 'Live preview' : 'Output'}
+          {showsPreview ? 'Vista previa' : 'Resultado'}
           <span className="font-normal text-muted">· {languageName}</span>
         </span>
         <div className="flex items-center gap-1">
           <button
             onClick={() => setRunId((n) => n + 1)}
             className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-xs text-muted hover:bg-surface-2 hover:text-fg transition-colors"
-            title="Run again"
+            title="Ejecutar de nuevo"
           >
-            <RotateCcw className="size-3.5" aria-hidden /> Run again
+            <RotateCcw className="size-3.5" aria-hidden /> Ejecutar de nuevo
           </button>
           {onClose && (
             <button
               onClick={onClose}
               className="inline-flex size-8 items-center justify-center rounded-lg text-muted hover:bg-surface-2 hover:text-fg"
-              aria-label="Close output"
+              aria-label="Cerrar resultado"
             >
               <X className="size-4" />
             </button>
@@ -198,27 +198,27 @@ export default function CodeRunner({ code, language, demo, onClose, onLog, hideL
 
       <p className="flex items-center gap-1.5 border-b border-line bg-surface-2/60 px-4 py-1.5 text-[11px] text-muted">
         <ShieldCheck className="size-3.5 text-success" aria-hidden />
-        Runs in an isolated sandbox: this code can't read your Pestle data, cookies or storage.
+        Corre en un entorno aislado: este código no puede leer tus datos de Pestle, tus cookies ni tu almacenamiento.
       </p>
       {effectiveLanguage !== language && (
         <p className="flex items-center gap-1.5 border-b border-line bg-accent-soft px-4 py-1.5 text-xs text-accent">
           <Wand2 className="size-3.5" aria-hidden />
-          Detected {languageName} code, running it with {languageName}.
+          Detectamos código {languageName}: se ejecuta con {languageName}.
         </p>
       )}
 
       <iframe
         key={`${runId}-${debouncedCode}`}
         ref={iframeRef}
-        title="Code runner"
+        title="Ejecutor de código"
         sandbox="allow-scripts allow-forms"
         src="/runner.html"
         className={cn('w-full bg-white', showsPreview ? 'h-80 border-b border-line' : 'hidden')}
       />
 
-      <div className="max-h-72 space-y-1 overflow-auto bg-console p-4 font-mono text-xs text-console-fg" aria-live="polite" aria-label="Console output">
+      <div className="max-h-72 space-y-1 overflow-auto bg-console p-4 font-mono text-xs text-console-fg" aria-live="polite" aria-label="Salida de la consola">
         {logs.length === 0 ? (
-          <p className="text-console-fg/50">{showsPreview ? 'Console output appears here' : 'Running…'}</p>
+          <p className="text-console-fg/50">{showsPreview ? 'Acá aparece lo que muestre la consola' : 'Ejecutando…'}</p>
         ) : (
           logs.map((line, i) => (
             <pre

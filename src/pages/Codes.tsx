@@ -39,7 +39,7 @@ export default function Codes() {
 
   const languageFilters = useMemo(
     () => [
-      { value: 'all', label: 'All', count: SNIPPETS.length },
+      { value: 'all', label: 'Todos', count: SNIPPETS.length },
       ...LANGUAGES.map((l) => ({ ...l, count: SNIPPETS.filter((s) => s.language === l.value).length })).filter((l) => l.count > 0),
     ],
     []
@@ -62,8 +62,8 @@ export default function Codes() {
     <div className="space-y-6 animate-fade-up">
       <PageHeader
         icon={Library}
-        title="Code library"
-        description={`${SNIPPETS.length} tested snippets. Run them here, copy them, or open them in the editor to adapt and share.`}
+        title="Biblioteca de códigos"
+        description={`${SNIPPETS.length} ejemplos probados. Ejecutalos acá, copialos o abrilos en el editor para adaptarlos y compartirlos.`}
       />
 
       <div className="sticky top-16 z-30 -mx-4 space-y-3 bg-bg/85 px-4 py-3 backdrop-blur-md sm:-mx-6 sm:px-6">
@@ -72,21 +72,21 @@ export default function Codes() {
           <input
             ref={searchRef}
             type="search"
-            aria-label="Search snippets"
+            aria-label="Buscar ejemplos"
             value={query}
             onChange={(e) => updateParam('q', e.target.value)}
-            placeholder="Search: debounce, fetch, layout…"
+            placeholder="Buscar: debounce, fetch, diseño…"
             className="w-full bg-transparent text-sm outline-none placeholder:text-muted"
           />
           {query ? (
-            <button onClick={() => updateParam('q', '')} aria-label="Clear search" className="text-muted hover:text-fg">
+            <button onClick={() => updateParam('q', '')} aria-label="Borrar búsqueda" className="text-muted hover:text-fg">
               <X className="size-4" />
             </button>
           ) : (
             <Kbd>/</Kbd>
           )}
         </label>
-        <div className="flex gap-1.5 overflow-x-auto pb-1" role="tablist" aria-label="Filter by language">
+        <div className="flex gap-1.5 overflow-x-auto pb-1" role="tablist" aria-label="Filtrar por lenguaje">
           {languageFilters.map((l) => (
             <button
               key={l.value}
@@ -110,10 +110,10 @@ export default function Codes() {
       {filtered.length === 0 ? (
         <EmptyState
           icon={SearchX}
-          title="No snippets match your search"
-          description="Try another word or clear the filters."
+          title="Ningún ejemplo coincide con tu búsqueda"
+          description="Probá con otra palabra o borrá los filtros."
           action={
-            <Button onClick={() => setParams({}, { replace: true })}>Clear filters</Button>
+            <Button onClick={() => setParams({}, { replace: true })}>Borrar filtros</Button>
           }
         />
       ) : (
@@ -139,7 +139,7 @@ function SnippetCard({ snippet, onTag }: { snippet: Snippet; onTag: (tag: string
   const copy = async () => {
     await copyText(snippet.code);
     setCopied(true);
-    toast(`Copied “${snippet.title}”`);
+    toast(`Copiaste “${snippet.title}”`);
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -170,7 +170,7 @@ function SnippetCard({ snippet, onTag }: { snippet: Snippet; onTag: (tag: string
             {snippet.runLocally && (
               <p className="flex flex-wrap items-center gap-2 text-xs text-muted">
                 <Terminal className="size-3.5 shrink-0" aria-hidden />
-                Needs a server, run it locally:
+                Necesita un servidor, ejecutalo en tu compu:
                 <code className="rounded-md border border-line bg-surface-2 px-1.5 py-0.5 font-mono text-fg break-all">
                   {snippet.runLocally}
                 </code>
@@ -180,24 +180,24 @@ function SnippetCard({ snippet, onTag }: { snippet: Snippet; onTag: (tag: string
           <div className="flex shrink-0 flex-wrap gap-2">
             {runnable && (
               <Button variant="success" size="sm" icon={running ? X : Play} onClick={() => setRunning((r) => !r)}>
-                {running ? 'Hide' : 'Run'}
+                {running ? 'Ocultar' : 'Ejecutar'}
               </Button>
             )}
             <Button size="sm" icon={copied ? Check : Copy} onClick={copy}>
-              {copied ? 'Copied' : 'Copy'}
+              {copied ? 'Copiado' : 'Copiar'}
             </Button>
-            <Button size="sm" icon={Pencil} onClick={openInEditor} title="Open in the editor to modify and share">
-              Edit &amp; share
+            <Button size="sm" icon={Pencil} onClick={openInEditor} title="Abrir en el editor para modificarlo y compartirlo">
+              Editar y compartir
             </Button>
             <Button
               size="sm"
               variant="ghost"
               icon={Download}
-              aria-label={`Download ${snippet.title}`}
+              aria-label={`Descargar ${snippet.title}`}
               onClick={() =>
                 downloadText(snippet.code, snippet.id, snippet.language)
-                  .then((where) => where && toast(`Saved to ${where}`))
-                  .catch((err) => toast(`Could not save: ${err instanceof Error ? err.message : err}`, 'error'))
+                  .then((where) => where && toast(`Guardado en ${where}`))
+                  .catch((err) => toast(`No se pudo guardar: ${err instanceof Error ? err.message : err}`, 'error'))
               }
             />
           </div>
@@ -211,7 +211,7 @@ function SnippetCard({ snippet, onTag }: { snippet: Snippet; onTag: (tag: string
             {!expanded && (
               <div className="absolute inset-x-0 bottom-0 flex justify-center bg-gradient-to-t from-surface via-surface/90 to-transparent pb-3 pt-12">
                 <Button size="sm" icon={ChevronDown} onClick={() => setExpanded(true)}>
-                  Show all {lineCount} lines
+                  Ver las {lineCount} líneas
                 </Button>
               </div>
             )}

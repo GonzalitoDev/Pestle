@@ -21,124 +21,124 @@ export const SNIPPETS: Snippet[] = [
   {
     id: 'debounce',
     title: 'Debounce',
-    description: 'Delay a function until calls stop for N ms. Ideal for search inputs and resize handlers.',
+    description: 'Espera a que dejen de llamar a una función durante N ms antes de ejecutarla. Ideal para buscadores y para cuando se cambia el tamaño de la ventana.',
     language: 'javascript',
-    tags: ['performance', 'events'],
-    code: `function debounce(fn, wait = 300) {
-  let timer;
+    tags: ['rendimiento', 'eventos'],
+    code: `function debounce(fn, espera = 300) {
+  let temporizador;
   return (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => fn(...args), wait);
+    clearTimeout(temporizador);
+    temporizador = setTimeout(() => fn(...args), espera);
   };
 }
 
-// Demo: only the last call within 100ms runs
-const log = debounce((value) => console.log('Search for:', value), 100);
-log('p');
-log('pe');
-log('pes');
-log('pestle'); // -> Search for: pestle
+// Demo: solo se ejecuta la última llamada dentro de los 100 ms
+const buscar = debounce((valor) => console.log('Buscando:', valor), 100);
+buscar('p');
+buscar('pe');
+buscar('pes');
+buscar('pestle'); // -> Buscando: pestle
 `,
   },
   {
     id: 'throttle',
     title: 'Throttle',
-    description: 'Run a function at most once every N ms, e.g. for scroll listeners.',
+    description: 'Ejecuta una función como máximo una vez cada N ms, por ejemplo al hacer scroll.',
     language: 'javascript',
-    tags: ['performance', 'events'],
-    code: `function throttle(fn, limit = 200) {
-  let last = 0;
+    tags: ['rendimiento', 'eventos'],
+    code: `function throttle(fn, limite = 200) {
+  let ultima = 0;
   return (...args) => {
-    const now = Date.now();
-    if (now - last >= limit) {
-      last = now;
+    const ahora = Date.now();
+    if (ahora - ultima >= limite) {
+      ultima = ahora;
       fn(...args);
     }
   };
 }
 
-const tick = throttle((i) => console.log('tick', i), 50);
+const tic = throttle((i) => console.log('tic', i), 50);
 let i = 0;
 const id = setInterval(() => {
-  tick(i++);
+  tic(i++);
   if (i > 20) clearInterval(id);
 }, 10);
 `,
   },
   {
     id: 'deep-clone',
-    title: 'Deep clone',
-    description: 'Copy nested objects, arrays, dates and maps with the native structuredClone.',
+    title: 'Copia profunda',
+    description: 'Copia objetos anidados, listas, fechas y Maps con structuredClone, que viene con el navegador.',
     language: 'javascript',
-    tags: ['objects'],
+    tags: ['objetos'],
     code: `const original = {
-  name: 'Pestle',
-  created: new Date('2024-01-01'),
-  tags: ['code', 'share'],
-  meta: new Map([['views', 42]]),
+  nombre: 'Pestle',
+  creado: new Date('2024-01-01'),
+  etiquetas: ['código', 'compartir'],
+  datos: new Map([['visitas', 42]]),
 };
 
-const copy = structuredClone(original);
-copy.tags.push('clone');
-copy.meta.set('views', 43);
+const copia = structuredClone(original);
+copia.etiquetas.push('copia');
+copia.datos.set('visitas', 43);
 
-console.log('original tags:', original.tags);
-console.log('copy tags:', copy.tags);
-console.log('original views:', original.meta.get('views'));
-console.log('date preserved:', copy.created instanceof Date);
+console.log('etiquetas del original:', original.etiquetas);
+console.log('etiquetas de la copia:', copia.etiquetas);
+console.log('visitas del original:', original.datos.get('visitas'));
+console.log('¿la fecha sigue siendo Date?', copia.creado instanceof Date);
 `,
   },
   {
     id: 'group-by',
-    title: 'Group by',
-    description: 'Group an array of objects by a key or by a function.',
+    title: 'Agrupar por',
+    description: 'Agrupa una lista de objetos según una propiedad o una función.',
     language: 'javascript',
-    tags: ['arrays'],
-    code: `function groupBy(list, key) {
-  const getKey = typeof key === 'function' ? key : (item) => item[key];
-  return list.reduce((acc, item) => {
-    const k = getKey(item);
-    (acc[k] ||= []).push(item);
-    return acc;
+    tags: ['listas'],
+    code: `function agruparPor(lista, clave) {
+  const obtenerClave = typeof clave === 'function' ? clave : (item) => item[clave];
+  return lista.reduce((grupos, item) => {
+    const k = obtenerClave(item);
+    (grupos[k] ||= []).push(item);
+    return grupos;
   }, {});
 }
 
-const people = [
-  { name: 'Ana', city: 'Rosario', age: 31 },
-  { name: 'Luis', city: 'Córdoba', age: 24 },
-  { name: 'Sofi', city: 'Rosario', age: 19 },
+const personas = [
+  { nombre: 'Ana', ciudad: 'Rosario', edad: 31 },
+  { nombre: 'Luis', ciudad: 'Córdoba', edad: 24 },
+  { nombre: 'Sofi', ciudad: 'Rosario', edad: 17 },
 ];
 
-console.log(groupBy(people, 'city'));
-console.log(groupBy(people, (p) => (p.age >= 21 ? 'adult' : 'young')));
+console.log(agruparPor(personas, 'ciudad'));
+console.log(agruparPor(personas, (p) => (p.edad >= 18 ? 'mayores' : 'menores')));
 `,
   },
   {
     id: 'chunk',
-    title: 'Chunk array',
-    description: 'Split an array into groups of a fixed size (pagination, batching).',
+    title: 'Partir una lista en grupos',
+    description: 'Divide una lista en grupos de tamaño fijo (paginación, procesar de a tandas).',
     language: 'javascript',
-    tags: ['arrays'],
-    code: `const chunk = (arr, size) =>
-  Array.from({ length: Math.ceil(arr.length / size) }, (_, i) =>
-    arr.slice(i * size, i * size + size)
+    tags: ['listas'],
+    code: `const partir = (lista, tamanio) =>
+  Array.from({ length: Math.ceil(lista.length / tamanio) }, (_, i) =>
+    lista.slice(i * tamanio, i * tamanio + tamanio)
   );
 
-console.log(chunk([1, 2, 3, 4, 5, 6, 7], 3)); // [[1,2,3],[4,5,6],[7]]
+console.log(partir([1, 2, 3, 4, 5, 6, 7], 3)); // [[1,2,3],[4,5,6],[7]]
 `,
   },
   {
     id: 'unique',
-    title: 'Unique values & objects',
-    description: 'Remove duplicates from primitive arrays and from arrays of objects by key.',
+    title: 'Quitar repetidos',
+    description: 'Saca los valores repetidos de una lista, y los objetos repetidos según una propiedad.',
     language: 'javascript',
-    tags: ['arrays'],
-    code: `const unique = (arr) => [...new Set(arr)];
-const uniqueBy = (arr, key) => [...new Map(arr.map((x) => [x[key], x])).values()];
+    tags: ['listas'],
+    code: `const sinRepetidos = (lista) => [...new Set(lista)];
+const sinRepetidosPor = (lista, clave) => [...new Map(lista.map((x) => [x[clave], x])).values()];
 
-console.log(unique([1, 2, 2, 3, 3, 3]));
+console.log(sinRepetidos([1, 2, 2, 3, 3, 3]));
 console.log(
-  uniqueBy(
+  sinRepetidosPor(
     [
       { id: 1, n: 'a' },
       { id: 2, n: 'b' },
@@ -151,21 +151,21 @@ console.log(
   },
   {
     id: 'memo-fib',
-    title: 'Memoize',
-    description: 'Cache results of pure functions. Shown with an instant Fibonacci(90).',
+    title: 'Memoización',
+    description: 'Guarda los resultados de funciones puras para no recalcularlos. Ejemplo: Fibonacci(90) al instante.',
     language: 'javascript',
-    tags: ['performance', 'functions'],
-    code: `function memoize(fn) {
+    tags: ['rendimiento', 'funciones'],
+    code: `function memoizar(fn) {
   const cache = new Map();
   return function (n) {
     if (cache.has(n)) return cache.get(n);
-    const result = fn.call(this, n);
-    cache.set(n, result);
-    return result;
+    const resultado = fn.call(this, n);
+    cache.set(n, resultado);
+    return resultado;
   };
 }
 
-const fib = memoize((n) => (n < 2 ? BigInt(n) : fib(n - 1) + fib(n - 2)));
+const fib = memoizar((n) => (n < 2 ? BigInt(n) : fib(n - 1) + fib(n - 2)));
 
 console.log('fib(10) =', fib(10).toString());
 console.log('fib(90) =', fib(90).toString());
@@ -173,76 +173,76 @@ console.log('fib(90) =', fib(90).toString());
   },
   {
     id: 'retry',
-    title: 'Retry with backoff',
-    description: 'Retry an async operation with exponential backoff.',
+    title: 'Reintentar con espera creciente',
+    description: 'Reintenta una operación asíncrona esperando cada vez el doble (backoff exponencial).',
     language: 'javascript',
-    tags: ['async', 'network'],
-    code: `const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+    tags: ['async', 'red'],
+    code: `const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function retry(fn, { retries = 3, delay = 100 } = {}) {
-  for (let attempt = 0; ; attempt++) {
+async function reintentar(fn, { intentos = 3, espera = 100 } = {}) {
+  for (let intento = 0; ; intento++) {
     try {
-      return await fn(attempt);
+      return await fn(intento);
     } catch (err) {
-      if (attempt >= retries) throw err;
-      const wait = delay * 2 ** attempt;
-      console.log('attempt ' + (attempt + 1) + ' failed, retrying in ' + wait + 'ms');
-      await sleep(wait);
+      if (intento >= intentos) throw err;
+      const ms = espera * 2 ** intento;
+      console.log('falló el intento ' + (intento + 1) + ', reintento en ' + ms + ' ms');
+      await dormir(ms);
     }
   }
 }
 
-// Demo: fails twice, then succeeds
-retry(async (attempt) => {
-  if (attempt < 2) throw new Error('flaky');
-  return 'success on attempt ' + (attempt + 1);
+// Demo: falla dos veces y a la tercera funciona
+reintentar(async (intento) => {
+  if (intento < 2) throw new Error('inestable');
+  return 'funcionó en el intento ' + (intento + 1);
 }).then(console.log);
 `,
   },
   {
     id: 'fetch-timeout',
-    title: 'Fetch JSON with timeout',
-    description: 'fetch() wrapper that aborts after a timeout and throws on HTTP errors.',
+    title: 'Pedir JSON con tiempo límite',
+    description: 'Una función sobre fetch() que cancela el pedido si tarda demasiado y avisa si el servidor responde con error.',
     language: 'javascript',
-    tags: ['async', 'network'],
-    code: `async function fetchJSON(url, { timeout = 5000, ...options } = {}) {
-  const res = await fetch(url, { ...options, signal: AbortSignal.timeout(timeout) });
+    tags: ['async', 'red'],
+    code: `async function pedirJSON(url, { limite = 5000, ...opciones } = {}) {
+  const res = await fetch(url, { ...opciones, signal: AbortSignal.timeout(limite) });
   if (!res.ok) throw new Error('HTTP ' + res.status);
   return res.json();
 }
 
-fetchJSON('https://api.github.com/repos/facebook/react')
+pedirJSON('https://api.github.com/repos/facebook/react')
   .then((repo) => console.log(repo.full_name, '★', repo.stargazers_count))
-  .catch((err) => console.error('Request failed:', err.message));
+  .catch((err) => console.error('Falló el pedido:', err.message));
 `,
   },
   {
     id: 'format',
-    title: 'Format money, numbers & dates',
-    description: 'Locale-aware formatting with the built-in Intl API — no libraries.',
+    title: 'Formatear plata, números y fechas',
+    description: 'Formatos según el país con la API Intl que trae JavaScript, sin librerías.',
     language: 'javascript',
-    tags: ['i18n', 'strings'],
-    code: `const ars = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' });
-const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
-const compact = new Intl.NumberFormat('en', { notation: 'compact' });
-const date = new Intl.DateTimeFormat('es-AR', { dateStyle: 'full' });
-const rtf = new Intl.RelativeTimeFormat('es', { numeric: 'auto' });
+    tags: ['formatos', 'textos'],
+    code: `const pesos = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' });
+const dolares = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+const compacto = new Intl.NumberFormat('es', { notation: 'compact' });
+const fecha = new Intl.DateTimeFormat('es-AR', { dateStyle: 'full' });
+const relativo = new Intl.RelativeTimeFormat('es', { numeric: 'auto' });
 
-console.log(ars.format(1234567.891));
-console.log(usd.format(1234567.891));
-console.log(compact.format(1234567));
-console.log(date.format(new Date(2025, 11, 25)));
-console.log(rtf.format(-1, 'day'), '/', rtf.format(3, 'week'));
+console.log(pesos.format(1234567.891));
+console.log(dolares.format(1234567.891));
+console.log(compacto.format(1234567));
+console.log(fecha.format(new Date(2025, 11, 25)));
+console.log(relativo.format(-1, 'day'), '/', relativo.format(3, 'week'));
 `,
   },
   {
     id: 'slugify',
-    title: 'Slugify',
-    description: 'Turn any title (accents included) into a URL-safe slug.',
+    title: 'Convertir un título en URL (slug)',
+    description: 'Transforma cualquier título (con tildes y todo) en un texto seguro para usar en una URL.',
     language: 'javascript',
-    tags: ['strings'],
-    code: `const slugify = (text) =>
-  text
+    tags: ['textos', 'slugify', 'url'],
+    code: `const aSlug = (texto) =>
+  texto
     .normalize('NFD')
     .replace(/[\\u0300-\\u036f]/g, '')
     .toLowerCase()
@@ -250,128 +250,128 @@ console.log(rtf.format(-1, 'day'), '/', rtf.format(3, 'week'));
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 
-console.log(slugify('¡Hola Mundo! Código en Acción 2025'));
-console.log(slugify('  Crème Brûlée & Café  '));
+console.log(aSlug('¡Hola Mundo! Código en Acción 2025'));
+console.log(aSlug('  Ñandú & Café con Leche  '));
 `,
   },
   {
     id: 'validate-email',
-    title: 'Validate email & password',
-    description: 'Practical form validation with helpful error messages.',
+    title: 'Validar email y contraseña',
+    description: 'Validación práctica de formularios, con mensajes de error que ayudan.',
     language: 'javascript',
-    tags: ['forms', 'validation'],
-    code: `const isEmail = (s) => /^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/.test(s);
+    tags: ['formularios', 'validación'],
+    code: `const esEmail = (s) => /^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/.test(s);
 
-function checkPassword(pw) {
-  const errors = [];
-  if (pw.length < 8) errors.push('at least 8 characters');
-  if (!/[A-Z]/.test(pw)) errors.push('an uppercase letter');
-  if (!/[a-z]/.test(pw)) errors.push('a lowercase letter');
-  if (!/\\d/.test(pw)) errors.push('a number');
-  return errors.length ? 'Needs ' + errors.join(', ') : 'Strong password';
+function revisarClave(clave) {
+  const faltan = [];
+  if (clave.length < 8) faltan.push('al menos 8 caracteres');
+  if (!/[A-Z]/.test(clave)) faltan.push('una mayúscula');
+  if (!/[a-z]/.test(clave)) faltan.push('una minúscula');
+  if (!/\\d/.test(clave)) faltan.push('un número');
+  return faltan.length ? 'Le falta: ' + faltan.join(', ') : 'Contraseña segura';
 }
 
-console.log(isEmail('dev@pestle.app'), isEmail('not-an-email'));
-console.log(checkPassword('abc'));
-console.log(checkPassword('Pestle2025'));
+console.log(esEmail('dev@pestle.app'), esEmail('esto-no-es-un-email'));
+console.log(revisarClave('abc'));
+console.log(revisarClave('Pestle2025'));
 `,
   },
   {
     id: 'random-id',
-    title: 'Secure random IDs & UUIDs',
-    description: 'Cryptographically secure IDs using the Web Crypto API.',
+    title: 'IDs al azar seguros y UUIDs',
+    description: 'Identificadores criptográficamente seguros con la API Web Crypto.',
     language: 'javascript',
-    tags: ['crypto', 'strings'],
-    code: `function randomId(length = 12) {
-  const alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  const bytes = crypto.getRandomValues(new Uint8Array(length));
-  return Array.from(bytes, (b) => alphabet[b % alphabet.length]).join('');
+    tags: ['criptografía', 'textos'],
+    code: `function idAlAzar(largo = 12) {
+  const alfabeto = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  const bytes = crypto.getRandomValues(new Uint8Array(largo));
+  return Array.from(bytes, (b) => alfabeto[b % alfabeto.length]).join('');
 }
 
 console.log('uuid:', crypto.randomUUID());
-console.log('short id:', randomId());
-console.log('token:', randomId(32));
+console.log('id corto:', idAlAzar());
+console.log('token:', idAlAzar(32));
 `,
   },
   {
     id: 'sha256',
-    title: 'SHA-256 hash',
-    description: 'Hash a string to hex with SubtleCrypto (works in browsers and Node 18+).',
+    title: 'Hash SHA-256',
+    description: 'Calcula el hash de un texto en hexadecimal con SubtleCrypto (anda en el navegador y en Node 18+).',
     language: 'javascript',
-    tags: ['crypto'],
-    code: `async function sha256(text) {
-  const data = new TextEncoder().encode(text);
-  const digest = await crypto.subtle.digest('SHA-256', data);
-  return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, '0')).join('');
+    tags: ['criptografía'],
+    code: `async function sha256(texto) {
+  const datos = new TextEncoder().encode(texto);
+  const resumen = await crypto.subtle.digest('SHA-256', datos);
+  return Array.from(new Uint8Array(resumen), (b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-sha256('hello world').then((hash) => console.log(hash));
-// b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9
+sha256('hola mundo').then((hash) => console.log(hash));
+// 0b894166d3336435c800bea36ff21b29eaa801a52f584c006c49289a0dcf6e2f
 `,
   },
   {
     id: 'event-emitter',
-    title: 'Tiny event emitter',
-    description: 'Pub/sub in 15 lines: on, off, once and emit.',
+    title: 'Emisor de eventos',
+    description: 'Publicar y suscribirse en 15 líneas: on, off, once y emit.',
     language: 'javascript',
-    tags: ['patterns', 'events'],
-    code: `class Emitter {
-  #handlers = new Map();
-  on(event, fn) {
-    if (!this.#handlers.has(event)) this.#handlers.set(event, new Set());
-    this.#handlers.get(event).add(fn);
-    return () => this.off(event, fn);
+    tags: ['patrones', 'eventos'],
+    code: `class Emisor {
+  #oyentes = new Map();
+  on(evento, fn) {
+    if (!this.#oyentes.has(evento)) this.#oyentes.set(evento, new Set());
+    this.#oyentes.get(evento).add(fn);
+    return () => this.off(evento, fn);
   }
-  off(event, fn) {
-    this.#handlers.get(event)?.delete(fn);
+  off(evento, fn) {
+    this.#oyentes.get(evento)?.delete(fn);
   }
-  once(event, fn) {
-    const off = this.on(event, (...args) => {
-      off();
+  once(evento, fn) {
+    const quitar = this.on(evento, (...args) => {
+      quitar();
       fn(...args);
     });
   }
-  emit(event, ...args) {
-    this.#handlers.get(event)?.forEach((fn) => fn(...args));
+  emit(evento, ...args) {
+    this.#oyentes.get(evento)?.forEach((fn) => fn(...args));
   }
 }
 
-const bus = new Emitter();
-bus.on('paste', (id) => console.log('new paste', id));
-bus.once('paste', () => console.log('(first paste only)'));
-bus.emit('paste', 'abc123');
-bus.emit('paste', 'def456');
+const canal = new Emisor();
+canal.on('publicado', (id) => console.log('nuevo código', id));
+canal.once('publicado', () => console.log('(solo el primero)'));
+canal.emit('publicado', 'abc123');
+canal.emit('publicado', 'def456');
 `,
   },
   {
     id: 'sort-by',
-    title: 'Sort by multiple fields',
-    description: 'Stable multi-key sort, with per-key ascending/descending order.',
+    title: 'Ordenar por varios campos',
+    description: 'Orden estable por varias propiedades, cada una ascendente o descendente.',
     language: 'javascript',
-    tags: ['arrays'],
-    code: `const sortBy = (...keys) => (a, b) => {
-  for (const key of keys) {
-    const desc = key.startsWith('-');
-    const k = desc ? key.slice(1) : key;
+    tags: ['listas'],
+    code: `const ordenarPor = (...claves) => (a, b) => {
+  for (const clave of claves) {
+    const desc = clave.startsWith('-');
+    const k = desc ? clave.slice(1) : clave;
     if (a[k] < b[k]) return desc ? 1 : -1;
     if (a[k] > b[k]) return desc ? -1 : 1;
   }
   return 0;
 };
 
-const scores = [
-  { team: 'Boca', pts: 30, gd: 12 },
-  { team: 'River', pts: 32, gd: 15 },
-  { team: 'Racing', pts: 30, gd: 18 },
+const tabla = [
+  { equipo: 'Boca', pts: 30, dif: 12 },
+  { equipo: 'River', pts: 32, dif: 15 },
+  { equipo: 'Racing', pts: 30, dif: 18 },
 ];
 
-console.log(scores.sort(sortBy('-pts', '-gd')).map((s) => s.team)); // River, Racing, Boca
+console.log(tabla.sort(ordenarPor('-pts', '-dif')).map((f) => f.equipo)); // River, Racing, Boca
 `,
   },
   {
     id: 'html-todo',
-    title: 'To-do list app',
-    description: 'A complete, dependency-free to-do app with add, toggle and delete.',
+    title: 'Lista de tareas',
+    description: 'Una app de tareas completa y sin dependencias: agregar, tachar y borrar.',
     language: 'html',
     tags: ['app', 'dom'],
     code: `<!doctype html>
@@ -384,53 +384,53 @@ console.log(scores.sort(sortBy('-pts', '-gd')).map((s) => s.team)); // River, Ra
   button { padding: 8px 12px; border: 1px solid #141414; background: #141414; color: #fff; cursor: pointer; }
   ul { list-style: none; padding: 0; }
   li { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid #ddd; }
-  li.done span { text-decoration: line-through; opacity: .5; }
+  li.hecha span { text-decoration: line-through; opacity: .5; }
   li span { flex: 1; cursor: pointer; }
-  .del { background: transparent; color: #c00; border: none; }
+  .borrar { background: transparent; color: #c00; border: none; }
 </style>
 </head>
 <body>
-  <h2>To-do</h2>
+  <h2>Tareas</h2>
   <form id="form">
-    <input id="input" placeholder="What needs doing?" autocomplete="off" />
-    <button>Add</button>
+    <input id="input" placeholder="¿Qué tenés que hacer?" autocomplete="off" />
+    <button>Agregar</button>
   </form>
-  <ul id="list"></ul>
-  <p id="count"></p>
+  <ul id="lista"></ul>
+  <p id="cuenta"></p>
 
 <script>
-  const todos = [{ text: 'Share a snippet on Pestle', done: true }, { text: 'Try the runner', done: false }];
-  const list = document.getElementById('list');
+  const tareas = [{ texto: 'Compartir un código en Pestle', hecha: true }, { texto: 'Probar el ejecutor', hecha: false }];
+  const lista = document.getElementById('lista');
 
-  function render() {
-    list.innerHTML = '';
-    todos.forEach((todo, i) => {
+  function mostrar() {
+    lista.innerHTML = '';
+    tareas.forEach((tarea, i) => {
       const li = document.createElement('li');
-      li.className = todo.done ? 'done' : '';
+      li.className = tarea.hecha ? 'hecha' : '';
       const span = document.createElement('span');
-      span.textContent = todo.text;
-      span.onclick = () => { todo.done = !todo.done; render(); };
-      const del = document.createElement('button');
-      del.className = 'del';
-      del.textContent = '✕';
-      del.onclick = () => { todos.splice(i, 1); render(); };
-      li.append(span, del);
-      list.append(li);
+      span.textContent = tarea.texto;
+      span.onclick = () => { tarea.hecha = !tarea.hecha; mostrar(); };
+      const borrar = document.createElement('button');
+      borrar.className = 'borrar';
+      borrar.textContent = '✕';
+      borrar.onclick = () => { tareas.splice(i, 1); mostrar(); };
+      li.append(span, borrar);
+      lista.append(li);
     });
-    const left = todos.filter(t => !t.done).length;
-    document.getElementById('count').textContent = left + ' item(s) left';
+    const pendientes = tareas.filter(t => !t.hecha).length;
+    document.getElementById('cuenta').textContent = 'Pendientes: ' + pendientes;
   }
 
   document.getElementById('form').onsubmit = (e) => {
     e.preventDefault();
     const input = document.getElementById('input');
     if (!input.value.trim()) return;
-    todos.push({ text: input.value.trim(), done: false });
+    tareas.push({ texto: input.value.trim(), hecha: false });
     input.value = '';
-    render();
+    mostrar();
   };
 
-  render();
+  mostrar();
 </script>
 </body>
 </html>
@@ -438,34 +438,34 @@ console.log(scores.sort(sortBy('-pts', '-gd')).map((s) => s.team)); // River, Ra
   },
   {
     id: 'html-counter',
-    title: 'Interactive counter',
-    description: 'Minimal interactive counter showing DOM events and state.',
+    title: 'Contador interactivo',
+    description: 'Un contador mínimo para ver cómo funcionan los eventos del DOM y el estado.',
     language: 'html',
-    tags: ['dom', 'beginner'],
+    tags: ['dom', 'principiante'],
     code: `<div style="font-family: system-ui; text-align: center; padding: 32px">
-  <h1 id="value" style="font-size: 64px; margin: 0">0</h1>
-  <button id="dec">−</button>
-  <button id="reset">reset</button>
-  <button id="inc">+</button>
+  <h1 id="valor" style="font-size: 64px; margin: 0">0</h1>
+  <button id="restar">−</button>
+  <button id="reiniciar">reiniciar</button>
+  <button id="sumar">+</button>
 </div>
 
 <script>
-  let count = 0;
-  const value = document.getElementById('value');
-  const update = (n) => { count = n; value.textContent = count; console.log('count =', count); };
-  document.getElementById('inc').onclick = () => update(count + 1);
-  document.getElementById('dec').onclick = () => update(count - 1);
-  document.getElementById('reset').onclick = () => update(0);
+  let cuenta = 0;
+  const valor = document.getElementById('valor');
+  const actualizar = (n) => { cuenta = n; valor.textContent = cuenta; console.log('cuenta =', cuenta); };
+  document.getElementById('sumar').onclick = () => actualizar(cuenta + 1);
+  document.getElementById('restar').onclick = () => actualizar(cuenta - 1);
+  document.getElementById('reiniciar').onclick = () => actualizar(0);
 </script>
 `,
   },
   {
     id: 'html-fetch-users',
-    title: 'Fetch & render API data',
-    description: 'Load users from a public API and render them as cards, with loading and error states.',
+    title: 'Traer datos de una API y mostrarlos',
+    description: 'Carga usuarios de una API pública y los muestra como tarjetas, con estados de carga y de error.',
     language: 'html',
-    tags: ['dom', 'network'],
-    code: `<div id="app" style="font-family: system-ui; padding: 16px">Loading…</div>
+    tags: ['dom', 'red'],
+    code: `<div id="app" style="font-family: system-ui; padding: 16px">Cargando…</div>
 
 <script>
   const app = document.getElementById('app');
@@ -475,20 +475,20 @@ console.log(scores.sort(sortBy('-pts', '-gd')).map((s) => s.team)); // River, Ra
       if (!res.ok) throw new Error('HTTP ' + res.status);
       return res.json();
     })
-    .then((users) => {
+    .then((usuarios) => {
       app.innerHTML = '';
-      users.slice(0, 6).forEach((u) => {
-        const card = document.createElement('div');
-        card.style.cssText = 'border:1px solid #141414;padding:12px;margin-bottom:8px';
-        card.innerHTML = '<strong></strong><br><small></small>';
-        card.querySelector('strong').textContent = u.name;
-        card.querySelector('small').textContent = u.email + ' · ' + u.address.city;
-        app.append(card);
+      usuarios.slice(0, 6).forEach((u) => {
+        const tarjeta = document.createElement('div');
+        tarjeta.style.cssText = 'border:1px solid #141414;padding:12px;margin-bottom:8px';
+        tarjeta.innerHTML = '<strong></strong><br><small></small>';
+        tarjeta.querySelector('strong').textContent = u.name;
+        tarjeta.querySelector('small').textContent = u.email + ' · ' + u.address.city;
+        app.append(tarjeta);
       });
-      console.log('Loaded', users.length, 'users');
+      console.log('Se cargaron', usuarios.length, 'usuarios');
     })
     .catch((err) => {
-      app.textContent = 'Could not load users: ' + err.message;
+      app.textContent = 'No se pudieron cargar los usuarios: ' + err.message;
       console.error(err.message);
     });
 </script>
@@ -496,11 +496,11 @@ console.log(scores.sort(sortBy('-pts', '-gd')).map((s) => s.team)); // River, Ra
   },
   {
     id: 'css-center',
-    title: 'Center anything',
-    description: 'The two modern ways to center an element: grid and flexbox.',
+    title: 'Centrar cualquier cosa',
+    description: 'Las dos formas modernas de centrar un elemento: grid y flexbox.',
     language: 'css',
-    tags: ['layout'],
-    code: `.grid-center {
+    tags: ['diseño'],
+    code: `.centrado-grid {
   display: grid;
   place-items: center;
   height: 140px;
@@ -508,7 +508,7 @@ console.log(scores.sort(sortBy('-pts', '-gd')).map((s) => s.team)); // River, Ra
   margin-bottom: 12px;
 }
 
-.flex-center {
+.centrado-flex {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -517,118 +517,118 @@ console.log(scores.sort(sortBy('-pts', '-gd')).map((s) => s.team)); // River, Ra
   color: #E4E3E0;
 }
 `,
-    demo: `<div class="grid-center"><div>Centered with grid</div></div>
-<div class="flex-center"><div>Centered with flexbox</div></div>`,
+    demo: `<div class="centrado-grid"><div>Centrado con grid</div></div>
+<div class="centrado-flex"><div>Centrado con flexbox</div></div>`,
   },
   {
     id: 'css-loader',
-    title: 'CSS spinner',
-    description: 'A pure-CSS loading spinner, no images or JS.',
+    title: 'Ruedita de carga en CSS',
+    description: 'Un indicador de carga hecho solo con CSS, sin imágenes ni JavaScript.',
     language: 'css',
-    tags: ['animation'],
-    code: `.spinner {
+    tags: ['animación'],
+    code: `.ruedita {
   width: 48px;
   height: 48px;
   border: 5px solid #E4E3E0;
   border-top-color: #141414;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: girar 0.8s linear infinite;
   margin: 40px auto;
 }
 
-@keyframes spin {
+@keyframes girar {
   to { transform: rotate(360deg); }
 }
 `,
-    demo: `<div class="spinner"></div>`,
+    demo: `<div class="ruedita"></div>`,
   },
   {
     id: 'css-responsive-grid',
-    title: 'Responsive card grid',
-    description: 'Auto-fitting grid that reflows cards without media queries.',
+    title: 'Grilla de tarjetas adaptable',
+    description: 'Una grilla que acomoda las tarjetas sola según el ancho, sin media queries.',
     language: 'css',
-    tags: ['layout', 'responsive'],
-    code: `.cards {
+    tags: ['diseño', 'responsive'],
+    code: `.tarjetas {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 12px;
   font-family: system-ui, sans-serif;
 }
 
-.card {
+.tarjeta {
   border: 1px solid #141414;
   padding: 16px;
   box-shadow: 4px 4px 0 #141414;
   background: white;
 }
 `,
-    demo: `<div class="cards">
-  <div class="card">One</div><div class="card">Two</div><div class="card">Three</div>
-  <div class="card">Four</div><div class="card">Five</div>
+    demo: `<div class="tarjetas">
+  <div class="tarjeta">Uno</div><div class="tarjeta">Dos</div><div class="tarjeta">Tres</div>
+  <div class="tarjeta">Cuatro</div><div class="tarjeta">Cinco</div>
 </div>`,
   },
   {
     id: 'ts-result',
-    title: 'Typed Result helper',
-    description: 'Handle errors without try/catch everywhere, fully typed.',
+    title: 'Resultado tipado (Result)',
+    description: 'Manejá errores sin llenar todo de try/catch, con tipos de TypeScript.',
     language: 'typescript',
-    tags: ['types', 'errors'],
-    code: `type Result<T, E = Error> = { ok: true; value: T } | { ok: false; error: E };
+    tags: ['tipos', 'errores'],
+    code: `type Resultado<T, E = Error> = { ok: true; valor: T } | { ok: false; error: E };
 
-async function attempt<T>(fn: () => Promise<T>): Promise<Result<T>> {
+async function intentar<T>(fn: () => Promise<T>): Promise<Resultado<T>> {
   try {
-    return { ok: true, value: await fn() };
+    return { ok: true, valor: await fn() };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error : new Error(String(error)) };
   }
 }
 
-// Usage
-const result = await attempt(() => fetch('/api/health').then((r) => r.json()));
-if (result.ok) {
-  console.log('Healthy:', result.value);
+// Uso
+const resultado = await intentar(() => fetch('/api/health').then((r) => r.json()));
+if (resultado.ok) {
+  console.log('Funciona:', resultado.valor);
 } else {
-  console.error('Failed:', result.error.message);
+  console.error('Falló:', resultado.error.message);
 }
 `,
   },
   {
     id: 'ts-use-local-storage',
-    title: 'React useLocalStorage hook',
-    description: 'useState that persists to localStorage and survives reloads.',
+    title: 'Hook de React useLocalStorage',
+    description: 'Un useState que se guarda en localStorage y sobrevive a las recargas.',
     language: 'typescript',
     tags: ['react', 'hooks'],
     code: `import { useEffect, useState } from 'react';
 
-export function useLocalStorage<T>(key: string, initial: T) {
-  const [value, setValue] = useState<T>(() => {
+export function useLocalStorage<T>(clave: string, inicial: T) {
+  const [valor, setValor] = useState<T>(() => {
     try {
-      const stored = localStorage.getItem(key);
-      return stored !== null ? (JSON.parse(stored) as T) : initial;
+      const guardado = localStorage.getItem(clave);
+      return guardado !== null ? (JSON.parse(guardado) as T) : inicial;
     } catch {
-      return initial;
+      return inicial;
     }
   });
 
   useEffect(() => {
     try {
-      localStorage.setItem(key, JSON.stringify(value));
+      localStorage.setItem(clave, JSON.stringify(valor));
     } catch {
-      // storage full or unavailable: keep in-memory value
+      // almacenamiento lleno o bloqueado: queda el valor en memoria
     }
-  }, [key, value]);
+  }, [clave, valor]);
 
-  return [value, setValue] as const;
+  return [valor, setValor] as const;
 }
 
-// const [theme, setTheme] = useLocalStorage('theme', 'light');
+// const [tema, setTema] = useLocalStorage('tema', 'claro');
 `,
   },
   {
     id: 'py-fastapi',
     runLocally: 'pip install fastapi uvicorn && uvicorn main:app --reload',
-    title: 'FastAPI REST API',
-    description: 'A working CRUD API in one file, with validation and proper status codes.',
+    title: 'API REST con FastAPI',
+    description: 'Una API completa (crear, listar y borrar) en un solo archivo, con validación y los códigos de estado correctos.',
     language: 'python',
     tags: ['api', 'backend'],
     code: `from fastapi import FastAPI, HTTPException
@@ -637,102 +637,102 @@ from pydantic import BaseModel
 app = FastAPI()
 
 
-class Item(BaseModel):
-    name: str
-    price: float
+class Producto(BaseModel):
+    nombre: str
+    precio: float
 
 
-items: dict[int, Item] = {}
+productos: dict[int, Producto] = {}
 
 
-@app.get("/items")
-def list_items():
-    return items
+@app.get("/productos")
+def listar_productos():
+    return productos
 
 
-@app.post("/items/{item_id}", status_code=201)
-def create_item(item_id: int, item: Item):
-    if item_id in items:
-        raise HTTPException(409, "Item already exists")
-    items[item_id] = item
-    return item
+@app.post("/productos/{producto_id}", status_code=201)
+def crear_producto(producto_id: int, producto: Producto):
+    if producto_id in productos:
+        raise HTTPException(409, "Ese producto ya existe")
+    productos[producto_id] = producto
+    return producto
 
 
-@app.delete("/items/{item_id}", status_code=204)
-def delete_item(item_id: int):
-    if items.pop(item_id, None) is None:
-        raise HTTPException(404, "Item not found")
+@app.delete("/productos/{producto_id}", status_code=204)
+def borrar_producto(producto_id: int):
+    if productos.pop(producto_id, None) is None:
+        raise HTTPException(404, "No existe ese producto")
 `,
   },
   {
     id: 'py-csv',
-    title: 'Summarize a CSV file',
-    description: 'Read a CSV and total a column per group using only the standard library.',
+    title: 'Resumir un archivo CSV',
+    description: 'Lee un CSV y suma una columna por grupo, usando solo la biblioteca estándar.',
     language: 'python',
-    tags: ['data', 'files'],
+    tags: ['datos', 'archivos'],
     code: `import csv
 import io
 from collections import defaultdict
 
-# Replace io.StringIO(...) with open("sales.csv", newline="") for a real file
-data = io.StringIO("""region,product,amount
-North,Pens,120.5
-South,Pens,80
-North,Paper,45.25
-South,Paper,99.9
+# Para un archivo de verdad, cambiá io.StringIO(...) por open("ventas.csv", newline="")
+datos = io.StringIO("""region,producto,monto
+Norte,Lapiceras,120.5
+Sur,Lapiceras,80
+Norte,Papel,45.25
+Sur,Papel,99.9
 """)
 
-totals = defaultdict(float)
-for row in csv.DictReader(data):
-    totals[row["region"]] += float(row["amount"])
+totales = defaultdict(float)
+for fila in csv.DictReader(datos):
+    totales[fila["region"]] += float(fila["monto"])
 
-for region, total in sorted(totals.items()):
+for region, total in sorted(totales.items()):
     print(f"{region:<6} {total:>8.2f}")
 `,
   },
   {
     id: 'py-scraper',
     runLocally: 'python scraper.py',
-    title: 'Fetch a web page title',
-    description: 'Download a page and extract its <title> with only the standard library.',
+    title: 'Obtener el título de una página web',
+    description: 'Descarga una página y saca su <title> usando solo la biblioteca estándar.',
     language: 'python',
-    tags: ['network', 'scraping'],
+    tags: ['red', 'scraping'],
     code: `from html.parser import HTMLParser
 from urllib.request import Request, urlopen
 
 
-class TitleParser(HTMLParser):
+class LectorDeTitulo(HTMLParser):
     def __init__(self):
         super().__init__()
-        self.in_title = False
-        self.title = ""
+        self.en_titulo = False
+        self.titulo = ""
 
     def handle_starttag(self, tag, attrs):
-        self.in_title = tag == "title"
+        self.en_titulo = tag == "title"
 
     def handle_endtag(self, tag):
         if tag == "title":
-            self.in_title = False
+            self.en_titulo = False
 
     def handle_data(self, data):
-        if self.in_title:
-            self.title += data
+        if self.en_titulo:
+            self.titulo += data
 
 
-req = Request("https://example.com", headers={"User-Agent": "Mozilla/5.0"})
-with urlopen(req, timeout=10) as res:
-    parser = TitleParser()
-    parser.feed(res.read().decode("utf-8", errors="replace"))
+pedido = Request("https://example.com", headers={"User-Agent": "Mozilla/5.0"})
+with urlopen(pedido, timeout=10) as respuesta:
+    lector = LectorDeTitulo()
+    lector.feed(respuesta.read().decode("utf-8", errors="replace"))
 
-print("Title:", parser.title.strip())
+print("Título:", lector.titulo.strip())
 `,
   },
   {
     id: 'json-vercel',
-    title: 'vercel.json for SPAs',
-    description: 'Serve a single-page app on Vercel with API routes and long-lived asset caching.',
+    title: 'vercel.json para una SPA',
+    description: 'Publicá una app de una sola página en Vercel, con rutas de API y caché larga para los archivos estáticos.',
     language: 'json',
-    tags: ['config', 'deploy'],
+    tags: ['configuración', 'deploy'],
     code: `{
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }],
@@ -747,33 +747,33 @@ print("Title:", parser.title.strip())
   },
   {
     id: 'md-readme',
-    title: 'README template',
-    description: 'A clean README structure for any project.',
+    title: 'Plantilla de README',
+    description: 'Una estructura prolija de README para cualquier proyecto.',
     language: 'markdown',
-    tags: ['docs'],
-    code: `# Project Name
+    tags: ['documentación'],
+    code: `# Nombre del proyecto
 
-One sentence about what this project does and who it is for.
+Una oración sobre qué hace este proyecto y para quién es.
 
-## Features
+## Funciones
 
-- Feature one
-- Feature two
+- Función uno
+- Función dos
 
-## Getting started
+## Cómo empezar
 
 \`\`\`bash
 npm install
 npm run dev
 \`\`\`
 
-## Configuration
+## Configuración
 
-| Variable | Description | Default |
+| Variable | Descripción | Valor por defecto |
 | --- | --- | --- |
-| \`PORT\` | Port to listen on | \`3000\` |
+| \`PORT\` | Puerto donde escucha | \`3000\` |
 
-## License
+## Licencia
 
 MIT
 `,
