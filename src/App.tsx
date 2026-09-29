@@ -4,7 +4,7 @@
  */
 
 import { BrowserRouter as Router, Routes, Route, Link, NavLink, useLocation } from 'react-router-dom';
-import { Terminal, Plus, FolderOpen, Github, Globe, Library, Menu, X, Sun, Moon, Monitor, AlertTriangle, Smartphone, GraduationCap } from 'lucide-react';
+import { Terminal, Plus, FolderOpen, Globe, Library, Menu, X, Sun, Moon, Monitor, AlertTriangle, Smartphone, GraduationCap } from 'lucide-react';
 import { Suspense, lazy, useEffect, useState } from 'react';
 import { resolveBackend } from './lib/pasteService';
 import { ThemePreference, useTheme } from './lib/theme';
@@ -29,8 +29,6 @@ const Privacy = lazy(() => import('./pages/Info').then((m) => ({ default: m.Priv
 const Terms = lazy(() => import('./pages/Info').then((m) => ({ default: m.Terms })));
 const ApiDocs = lazy(() => import('./pages/Info').then((m) => ({ default: m.ApiDocs })));
 const NotFound = lazy(() => import('./pages/Info').then((m) => ({ default: m.NotFound })));
-
-const REPO_URL = 'https://github.com/gonzalitodev/pestesting';
 
 const NAV_ITEMS = [
   { to: '/', label: 'Nuevo', icon: Plus, end: true },
@@ -136,15 +134,6 @@ export default function App() {
                   <Smartphone className="size-4 text-success" aria-hidden /> Bajá la app
                 </ApkLink>
                 <ThemeToggle />
-                <a
-                  href={REPO_URL}
-                  target="_blank"
-                  rel="noreferrer"
-                  aria-label="Código fuente en GitHub"
-                  className="hidden sm:inline-flex h-9 items-center rounded-lg px-2.5 text-muted hover:bg-surface-2 hover:text-fg transition-colors"
-                >
-                  <Github className="size-[18px]" aria-hidden />
-                </a>
                 <button
                   onClick={() => setMenuOpen((o) => !o)}
                   className="lg:hidden inline-flex h-9 items-center rounded-lg px-2.5 text-fg hover:bg-surface-2"
@@ -176,9 +165,6 @@ export default function App() {
                 <ApkLink className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-success">
                   <Smartphone className="size-4" aria-hidden /> Descargar la app para Android (APK)
                 </ApkLink>
-                <a href={REPO_URL} target="_blank" rel="noreferrer" className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-muted hover:text-fg">
-                  <Github className="size-4" aria-hidden /> Código fuente
-                </a>
               </div>
             )}
           </nav>
@@ -221,7 +207,6 @@ export default function App() {
                 <Link to="/privacy" className="hover:text-fg">Privacidad</Link>
                 <Link to="/terms" className="hover:text-fg">Términos</Link>
                 <Link to="/api-docs" className="hover:text-fg">API</Link>
-                <a href={REPO_URL} target="_blank" rel="noreferrer" className="hover:text-fg">GitHub</a>
               </div>
             </div>
           </footer>
