@@ -1,4 +1,5 @@
 import { json, ownerHashFrom, preflight, progressKey, rateLimit, redis, safe, storageUnavailable } from './_lib/store.js';
+import { updateScore } from './_lib/ranking.js';
 
 /**
  * Course progress for the anonymous owner (x-owner-id): completed lessons, the code of each
@@ -109,6 +110,7 @@ export const POST = safe(async (request) => {
   const stored = sanitize(await redis.get<Progress>(key));
   const merged = merge(stored, incoming);
   await redis.set(key, merged, { ex: ONE_YEAR });
+  await updateScore(ownerHash, merged.done);
   return json(merged);
 });
 

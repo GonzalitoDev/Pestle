@@ -52,6 +52,13 @@ export function Privacy() {
         </p>
       </section>
       <section>
+        <h2>Ranking</h2>
+        <p>
+          Aparecer en el ranking es opcional. Si te sumás, se muestran públicamente el apodo que elijas y tus puntos. Podés
+          cambiar el apodo o salir del ranking cuando quieras, y en ese caso se borran los dos.
+        </p>
+      </section>
+      <section>
         <h2>Protección contra abusos</h2>
         <p>
           Para frenar el spam, la API cuenta los pedidos de cada dirección IP. La IP nunca se guarda tal cual: solo un hash,

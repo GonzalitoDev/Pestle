@@ -4,7 +4,7 @@
  */
 
 import { BrowserRouter as Router, Routes, Route, Link, NavLink, useLocation } from 'react-router-dom';
-import { Terminal, Plus, FolderOpen, Globe, Library, Menu, X, Sun, Moon, Monitor, AlertTriangle, Smartphone, GraduationCap, Trophy } from 'lucide-react';
+import { Terminal, Plus, FolderOpen, Globe, Library, Menu, X, Sun, Moon, Monitor, AlertTriangle, Smartphone, GraduationCap, Trophy, Medal } from 'lucide-react';
 import { Suspense, lazy, useEffect, useState } from 'react';
 import { resolveBackend } from './lib/pasteService';
 import { ThemePreference, useTheme } from './lib/theme';
@@ -25,6 +25,7 @@ const Courses = lazy(() => import('./pages/Courses'));
 const Lesson = lazy(() => import('./pages/Lesson'));
 const Project = lazy(() => import('./pages/Project'));
 const CertificateClaim = lazy(() => import('./pages/CertificateClaim'));
+const Ranking = lazy(() => import('./pages/Ranking'));
 const Achievements = lazy(() => import('./pages/Achievements'));
 const Certificate = lazy(() => import('./pages/Certificate'));
 const Privacy = lazy(() => import('./pages/Info').then((m) => ({ default: m.Privacy })));
@@ -37,6 +38,7 @@ const NAV_ITEMS = [
   { to: '/codes', label: 'Biblioteca', icon: Library, end: false },
   { to: '/cursos', label: 'Cursos', icon: GraduationCap, end: false },
   { to: '/logros', label: 'Logros', icon: Trophy, end: false },
+  { to: '/ranking', label: 'Ranking', icon: Medal, end: false },
   { to: '/explore', label: 'Explorar', icon: Globe, end: false },
   { to: '/dashboard', label: 'Mis códigos', icon: FolderOpen, end: false },
 ];
@@ -191,6 +193,7 @@ export default function App() {
               <Route path="/cursos/:courseId" element={<Lesson />} />
               <Route path="/cursos/:courseId/proyecto" element={<Project />} />
               <Route path="/cursos/:courseId/certificado" element={<CertificateClaim />} />
+              <Route path="/ranking" element={<Ranking />} />
               <Route path="/logros" element={<Achievements />} />
               <Route path="/certificado" element={<Certificate />} />
               <Route path="/certificado/:id" element={<Certificate />} />
