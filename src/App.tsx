@@ -4,7 +4,7 @@
  */
 
 import { BrowserRouter as Router, Routes, Route, Link, NavLink, useLocation } from 'react-router-dom';
-import { Terminal, Plus, FolderOpen, Globe, Library, Menu, X, Sun, Moon, Monitor, AlertTriangle, Smartphone, GraduationCap } from 'lucide-react';
+import { Terminal, Plus, FolderOpen, Globe, Library, Menu, X, Sun, Moon, Monitor, AlertTriangle, Smartphone, GraduationCap, Trophy } from 'lucide-react';
 import { Suspense, lazy, useEffect, useState } from 'react';
 import { resolveBackend } from './lib/pasteService';
 import { ThemePreference, useTheme } from './lib/theme';
@@ -12,6 +12,7 @@ import { initNative, syncSystemBars } from './lib/native';
 import ApkLink from './components/ApkLink';
 import { cn } from './lib/utils';
 import { ToastProvider } from './components/Toast';
+import AchievementWatcher from './components/AchievementWatcher';
 import Home from './pages/Home';
 import { Spinner } from './components/ui';
 
@@ -24,6 +25,7 @@ const Courses = lazy(() => import('./pages/Courses'));
 const Lesson = lazy(() => import('./pages/Lesson'));
 const Project = lazy(() => import('./pages/Project'));
 const CertificateClaim = lazy(() => import('./pages/CertificateClaim'));
+const Achievements = lazy(() => import('./pages/Achievements'));
 const Certificate = lazy(() => import('./pages/Certificate'));
 const Privacy = lazy(() => import('./pages/Info').then((m) => ({ default: m.Privacy })));
 const Terms = lazy(() => import('./pages/Info').then((m) => ({ default: m.Terms })));
@@ -34,6 +36,7 @@ const NAV_ITEMS = [
   { to: '/', label: 'Nuevo', icon: Plus, end: true },
   { to: '/codes', label: 'Biblioteca', icon: Library, end: false },
   { to: '/cursos', label: 'Cursos', icon: GraduationCap, end: false },
+  { to: '/logros', label: 'Logros', icon: Trophy, end: false },
   { to: '/explore', label: 'Explorar', icon: Globe, end: false },
   { to: '/dashboard', label: 'Mis códigos', icon: FolderOpen, end: false },
 ];
@@ -97,6 +100,7 @@ export default function App() {
   return (
     <Router>
       <ToastProvider>
+        <AchievementWatcher />
         <RouteEffects onNavigate={() => setMenuOpen(false)} />
         <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] rounded-lg bg-surface px-4 py-2 shadow-card">
           Saltar al contenido
@@ -187,6 +191,7 @@ export default function App() {
               <Route path="/cursos/:courseId" element={<Lesson />} />
               <Route path="/cursos/:courseId/proyecto" element={<Project />} />
               <Route path="/cursos/:courseId/certificado" element={<CertificateClaim />} />
+              <Route path="/logros" element={<Achievements />} />
               <Route path="/certificado" element={<Certificate />} />
               <Route path="/certificado/:id" element={<Certificate />} />
               <Route path="/cursos/:courseId/:lessonId" element={<Lesson />} />
