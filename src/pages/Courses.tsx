@@ -69,7 +69,9 @@ export default function Courses() {
                       <Award className="size-3" /> Completado
                     </Badge>
                   )}
-                  <Badge tone={course.level === 'Principiante' ? 'success' : 'accent'}>{course.level}</Badge>
+                  <Badge tone={course.level === 'Principiante' ? 'success' : course.level === 'Avanzado' ? 'warn' : 'accent'}>
+                    {course.level}
+                  </Badge>
                 </div>
               </div>
               <h2 className="mt-4 text-xl font-semibold tracking-tight">{course.title}</h2>
