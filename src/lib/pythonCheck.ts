@@ -73,6 +73,7 @@ export const CONCEPT_LABELS: Record<string, string> = {
   lambda: 'Lambda',
   archivos: 'Archivos (with open)',
   generadores: 'Generadores (yield)',
+  decoradores: 'Decoradores (@)',
 };
 
 const indent = (code: string, spaces: number) =>
@@ -117,6 +118,8 @@ try:
         _pestle_kind = _pestle_map.get(type(_pestle_node).__name__)
         if _pestle_kind:
             _pestle_found.add(_pestle_kind)
+        if getattr(_pestle_node, "decorator_list", None):
+            _pestle_found.add("decoradores")
     print(${py(MARK.concepts)} + _pestle_json.dumps(sorted(_pestle_found)))
 except SyntaxError as _e:
     print(${py(MARK.syntax)} + str(_e.lineno) + "§" + str(_e.msg))
