@@ -1,4 +1,4 @@
-import { json, ownerHashFrom, preflight, rateLimit, redis, safe, storageUnavailable } from './_lib/store.js';
+import { json, ownerHashFrom, preflight, progressKey, rateLimit, redis, safe, storageUnavailable } from './_lib/store.js';
 
 /**
  * Course progress for the anonymous owner (x-owner-id): completed lessons, the code of each
@@ -19,7 +19,6 @@ const MAX_CODE_CHARS = 64 * 1024;
 const MAX_BODY_BYTES = 1024 * 1024;
 const ONE_YEAR = 60 * 60 * 24 * 365;
 
-const progressKey = (ownerHash: string) => `progress:${ownerHash}`;
 const empty = (): Progress => ({ done: [], code: {} });
 
 /** Keeps only well-formed entries; anything else is dropped rather than stored. */

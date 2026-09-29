@@ -207,16 +207,17 @@ function ProjectView({ courseId }: { courseId: string }) {
               <div className="flex-1">
                 <p className="text-lg font-semibold">¡Felicitaciones! Completaste “{course.title}”.</p>
                 <p className="text-sm text-muted">
-                  Terminaste las {course.lessons.length} lecciones y el proyecto final. Compartilo o seguí con otro curso.
+                  Terminaste las {course.lessons.length} lecciones y el proyecto final. Obtené tu certificado con tu nombre,
+                  verificable con un código y un QR.
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
-                <Button variant="success" icon={Send} loading={publishing} onClick={publish}>
+                <Link to={`/cursos/${course.id}/certificado`} className={buttonClass('primary')}>
+                  <Award className="size-4" aria-hidden /> Obtener mi certificado
+                </Link>
+                <Button icon={Send} loading={publishing} onClick={publish}>
                   Publicar mi proyecto
                 </Button>
-                <Link to="/cursos" className={buttonClass('secondary')}>
-                  Ver cursos
-                </Link>
               </div>
             </div>
           )}

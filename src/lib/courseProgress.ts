@@ -124,6 +124,14 @@ async function pushNow() {
   }
 }
 
+/** Uploads pending changes right away (e.g. before asking the server for a certificate). */
+export async function syncNow() {
+  if (pushTimer) clearTimeout(pushTimer);
+  dirty = true;
+  await pushNow();
+  if (syncStatus === 'error') throw new Error('No se pudo guardar el progreso en el servidor.');
+}
+
 /** Downloads the server copy and merges it with this browser's (call on startup / after a code change). */
 export async function pullProgress() {
   if (!(await canSync())) {

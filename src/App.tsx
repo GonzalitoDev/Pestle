@@ -23,6 +23,8 @@ const Explore = lazy(() => import('./pages/Explore'));
 const Courses = lazy(() => import('./pages/Courses'));
 const Lesson = lazy(() => import('./pages/Lesson'));
 const Project = lazy(() => import('./pages/Project'));
+const CertificateClaim = lazy(() => import('./pages/CertificateClaim'));
+const Certificate = lazy(() => import('./pages/Certificate'));
 const Privacy = lazy(() => import('./pages/Info').then((m) => ({ default: m.Privacy })));
 const Terms = lazy(() => import('./pages/Info').then((m) => ({ default: m.Terms })));
 const ApiDocs = lazy(() => import('./pages/Info').then((m) => ({ default: m.ApiDocs })));
@@ -198,6 +200,9 @@ export default function App() {
               <Route path="/cursos" element={<Courses />} />
               <Route path="/cursos/:courseId" element={<Lesson />} />
               <Route path="/cursos/:courseId/proyecto" element={<Project />} />
+              <Route path="/cursos/:courseId/certificado" element={<CertificateClaim />} />
+              <Route path="/certificado" element={<Certificate />} />
+              <Route path="/certificado/:id" element={<Certificate />} />
               <Route path="/cursos/:courseId/:lessonId" element={<Lesson />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
