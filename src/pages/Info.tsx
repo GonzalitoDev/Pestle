@@ -52,6 +52,15 @@ export function Privacy() {
         </p>
       </section>
       <section>
+        <h2>Registro de logros y cursos completados</h2>
+        <p>
+          El servidor anota, junto a tu identificador anónimo (guardado como hash), qué logros desbloqueaste y qué cursos
+          completaste, con la fecha. Con eso se muestran estadísticas públicas sin datos personales: cuántas personas tienen
+          cada logro, cuántas completaron cada curso y quiénes fueron los últimos en terminar uno (con su apodo solo si se
+          sumaron al ranking; si no, como Anónimo).
+        </p>
+      </section>
+      <section>
         <h2>Ranking</h2>
         <p>
           Aparecer en el ranking es opcional. Si te sumás, se muestran públicamente el apodo que elijas y tus puntos. Podés
@@ -178,6 +187,12 @@ const ENDPOINTS: { method: string; path: string; description: string; example: s
     path: '/api/pastes/:id',
     description: 'Borra un código. Solo funciona con el mismo x-owner-id que se usó para crearlo.',
     example: `curl -X DELETE ${location.origin}/api/pastes/ID -H 'x-owner-id: mi-identificador-secreto-123'`,
+  },
+  {
+    method: 'GET',
+    path: '/api/stats',
+    description: 'Estadísticas públicas: cantidad de usuarios, personas por logro, cursos completados y los últimos graduados.',
+    example: `curl ${location.origin}/api/stats`,
   },
   {
     method: 'GET',
