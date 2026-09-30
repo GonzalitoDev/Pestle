@@ -13,6 +13,7 @@ import ApkLink from './components/ApkLink';
 import { cn } from './lib/utils';
 import { ToastProvider } from './components/Toast';
 import AchievementWatcher from './components/AchievementWatcher';
+import Intro from './components/Intro';
 import Inicio from './pages/Inicio';
 import { Spinner } from './components/ui';
 
@@ -106,6 +107,7 @@ export default function App() {
   return (
     <Router>
       <ToastProvider>
+        <Intro />
         <AchievementWatcher />
         <RouteEffects onNavigate={() => setMenuOpen(false)} />
         <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] rounded-lg bg-surface px-4 py-2 shadow-card">
