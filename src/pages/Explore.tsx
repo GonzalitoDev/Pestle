@@ -16,7 +16,7 @@ export default function Explore() {
     setError(null);
     pasteService
       .getPublicPastes()
-      .then(setPastes)
+      .then((all) => setPastes(all.filter((p) => p.language === 'python')))
       .catch((err) => setError(err instanceof Error ? err.message : String(err)))
       .finally(() => setLoading(false));
   };
@@ -28,7 +28,7 @@ export default function Explore() {
       <PageHeader
         icon={Globe}
         title="Explorar"
-        description="Lo último que se publicó como público. Lo oculto nunca aparece acá."
+        description="Lo último en Python que se publicó como público. Lo oculto nunca aparece acá."
         actions={
           <Button icon={RefreshCw} onClick={load} disabled={loading} className={loading ? '[&>svg]:animate-spin' : ''}>
             Actualizar

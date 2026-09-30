@@ -48,36 +48,57 @@ function RunnableExample({ code, language }: { code: string; language: string })
   );
 }
 
+/** Code fences marked with one of these show code that is not Python (commands, output): no "Probar". */
+const PLAIN_FENCES = new Set(['texto', 'consola', 'bash', 'text']);
+
 /**
- * Minimal markdown for course lessons: paragraphs, "- " lists, ``` code blocks (runnable),
- * `inline code` and **bold**.
+ * Minimal markdown for course lessons and the guide: paragraphs, "## " headings, "- " lists,
+ * ``` code blocks (runnable; ```consola or ```texto are shown without running), `inline code`
+ * and **bold**.
  */
 export default function Prose({ source, language = 'python' }: { source: string; language?: string }) {
   const blocks: ReactNode[] = [];
-  const parts = source.split(/```[a-z]*\n?/);
-  parts.forEach((part, i) => {
-    if (i % 2 === 1) {
-      blocks.push(<RunnableExample key={`code-${i}`} code={part.replace(/\n+$/, '')} language={language} />);
-      return;
-    }
-    part
+  const addText = (text: string, key: string) =>
+    text
       .split(/\n\s*\n/)
       .map((p) => p.trim())
       .filter(Boolean)
       .forEach((paragraph, j) => {
         const lines = paragraph.split('\n');
-        if (lines.every((l) => l.trim().startsWith('- '))) {
+        if (lines.length === 1 && paragraph.startsWith('## ')) {
           blocks.push(
-            <ul key={`ul-${i}-${j}`} className="list-disc space-y-1 pl-5 marker:text-muted">
+            <h2 key={`h-${key}-${j}`} className="pt-2 text-xl font-semibold tracking-tight text-fg">
+              {inline(paragraph.slice(3))}
+            </h2>
+          );
+        } else if (lines.every((l) => l.trim().startsWith('- '))) {
+          blocks.push(
+            <ul key={`ul-${key}-${j}`} className="list-disc space-y-1 pl-5 marker:text-muted">
               {lines.map((l, k) => (
                 <li key={k}>{inline(l.trim().slice(2))}</li>
               ))}
             </ul>
           );
         } else {
-          blocks.push(<p key={`p-${i}-${j}`}>{inline(paragraph)}</p>);
+          blocks.push(<p key={`p-${key}-${j}`}>{inline(paragraph)}</p>);
         }
       });
-  });
+
+  let last = 0;
+  for (const m of source.matchAll(/```([a-z]*)\n?([\s\S]*?)```/g)) {
+    addText(source.slice(last, m.index), String(last));
+    const code = m[2].replace(/\n+$/, '');
+    blocks.push(
+      PLAIN_FENCES.has(m[1]) ? (
+        <div key={`plain-${m.index}`} className="overflow-x-auto rounded-xl border border-line bg-surface-2/50">
+          <CodeBlock code={code} language="text" lineNumbers={false} />
+        </div>
+      ) : (
+        <RunnableExample key={`code-${m.index}`} code={code} language={language} />
+      )
+    );
+    last = m.index! + m[0].length;
+  }
+  addText(source.slice(last), String(last));
   return <div className="space-y-4 leading-relaxed text-fg/90">{blocks}</div>;
 }

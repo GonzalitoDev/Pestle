@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Award, BookOpen, CheckCircle2, GraduationCap, History, Lock, Play, Sparkles, Trophy } from 'lucide-react';
+import { ArrowRight, Award, BookOpen, CheckCircle2, GraduationCap, History, Lock, Play, Sparkles, Trophy, BookOpenText } from 'lucide-react';
 import { COURSES } from '../data/courses';
 import { startProgressSync, useProgress } from '../lib/courseProgress';
 import { Badge, Card, PageHeader, buttonClass } from '../components/ui';
@@ -172,6 +172,15 @@ export default function Courses() {
           <span className="text-sm text-muted">Mirá qué medallas ganaste y cuánto te falta para las próximas.</span>
         </span>
         <ArrowRight className="size-5 text-warn" aria-hidden />
+      </Link>
+
+      <Link to="/guia" className="flex items-center gap-3 rounded-xl border border-line bg-surface p-4 hover:border-line-strong">
+        <BookOpenText className="size-6 shrink-0 text-accent" aria-hidden />
+        <span className="flex-1">
+          <span className="block font-medium">¿Preferís leer primero?</span>
+          <span className="text-sm text-muted">La Guía de Python explica cada tema con calma, con ejemplos que podés ejecutar.</span>
+        </span>
+        <ArrowRight className="size-5 text-muted" aria-hidden />
       </Link>
 
       <ProgressSync />

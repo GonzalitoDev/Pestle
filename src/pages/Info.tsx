@@ -30,7 +30,7 @@ export function Privacy() {
       <section>
         <h2>Qué guardamos</h2>
         <p>
-          De cada código publicado: el título, el contenido, el lenguaje, la visibilidad, la fecha de creación y el
+          De cada código publicado: el título, el contenido, la visibilidad, la fecha de creación y el
           vencimiento, si elegiste uno. Nada de emails, cuentas, cookies de seguimiento ni estadísticas.
         </p>
       </section>
@@ -149,11 +149,11 @@ const ENDPOINTS: { method: string; path: string; description: string; example: s
     method: 'POST',
     path: '/api/pastes',
     description:
-      'Publica un código. Cuerpo: { content, language, title?, isPublic?, expiresIn? }. language puede ser javascript, typescript, python, html, css, json, markdown o text; expiresIn puede ser never, 1h, 1d o 1w. Mandá x-owner-id (cualquier texto al azar de 16 caracteres o más) para poder listarlo y borrarlo después.',
+      'Publica un código Python. Cuerpo: { content, title?, isPublic?, expiresIn? } (language es opcional y solo puede ser python); expiresIn puede ser never, 1h, 1d o 1w. Mandá x-owner-id (cualquier texto al azar de 16 caracteres o más) para poder listarlo y borrarlo después.',
     example: `curl -X POST ${location.origin}/api/pastes \\
   -H 'content-type: application/json' \\
   -H 'x-owner-id: mi-identificador-secreto-123' \\
-  -d '{"content":"console.log(42)","language":"javascript","expiresIn":"1d"}'`,
+  -d '{"content":"print(42)","expiresIn":"1d"}'`,
   },
   {
     method: 'GET',

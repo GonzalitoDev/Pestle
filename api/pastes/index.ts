@@ -1,6 +1,5 @@
 import {
   EXPIRY_OPTIONS,
-  LANGUAGES,
   MAX_CONTENT_BYTES,
   MAX_TITLE_LENGTH,
   PUBLIC_FEED_KEY,
@@ -79,13 +78,14 @@ export const POST = safe(async (request) => {
     return json({ error: 'El cuerpo no es un JSON válido' }, 400);
   }
 
-  const { content, title, language, isPublic, expiresIn = 'never' } = body;
+  // Pestle is only for Python; older pastes in other languages stay readable.
+  const { content, title, language = 'python', isPublic, expiresIn = 'never' } = body;
   if (typeof content !== 'string' || !content.trim()) return json({ error: 'Falta el contenido' }, 400);
   if (new TextEncoder().encode(content).length > MAX_CONTENT_BYTES) return json({ error: 'El contenido supera los 512 KB' }, 413);
   if (title !== undefined && (typeof title !== 'string' || title.length > MAX_TITLE_LENGTH)) {
     return json({ error: `El título tiene que ser un texto de hasta ${MAX_TITLE_LENGTH} caracteres` }, 400);
   }
-  if (!LANGUAGES.includes(language as StoredPaste['language'])) return json({ error: 'Ese lenguaje no está soportado' }, 400);
+  if (language !== 'python') return json({ error: 'Pestle es solo para Python: language tiene que ser "python"' }, 400);
   if (typeof expiresIn !== 'string' || !Object.hasOwn(EXPIRY_OPTIONS, expiresIn)) {
     return json({ error: 'El vencimiento (expiresIn) no es válido' }, 400);
   }

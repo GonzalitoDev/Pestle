@@ -14,614 +14,410 @@ export interface Snippet {
 }
 
 /**
- * Curated, working snippets. Every JavaScript / Python / HTML / CSS entry runs as-is in the
- * in-browser runner and prints (or renders) its result, except those marked `runLocally`.
+ * Curated, working Python examples. Every entry runs as-is in the in-browser runner (Pyodide) and
+ * prints its result, except those marked `runLocally`.
  */
 export const SNIPPETS: Snippet[] = [
   {
-    id: 'debounce',
-    title: 'Debounce',
-    description: 'Espera a que dejen de llamar a una función durante N ms antes de ejecutarla. Ideal para buscadores y para cuando se cambia el tamaño de la ventana.',
-    language: 'javascript',
-    tags: ['rendimiento', 'eventos'],
-    code: `function debounce(fn, espera = 300) {
-  let temporizador;
-  return (...args) => {
-    clearTimeout(temporizador);
-    temporizador = setTimeout(() => fn(...args), espera);
-  };
-}
+    id: 'hola-fstrings',
+    title: 'Hola mundo con f-strings',
+    description: 'Mostrar textos con variables adentro, números con decimales y columnas alineadas.',
+    language: 'python',
+    tags: ['principiante', 'textos'],
+    code: `nombre = "Ana"
+edad = 17
+precio = 1234.5
 
-// Demo: solo se ejecuta la última llamada dentro de los 100 ms
-const buscar = debounce((valor) => console.log('Buscando:', valor), 100);
-buscar('p');
-buscar('pe');
-buscar('pes');
-buscar('pestle'); // -> Buscando: pestle
+print(f"Hola, {nombre}. Tenés {edad} años.")
+print(f"El año que viene vas a tener {edad + 1}.")
+print(f"Precio: $ {precio:,.2f}")        # 2 decimales y separador de miles
+print(f"{'Producto':<10}|{'Precio':>8}")  # < izquierda, > derecha
+print(f"{'Yerba':<10}|{2500:>8}")
 `,
   },
   {
-    id: 'throttle',
-    title: 'Throttle',
-    description: 'Ejecuta una función como máximo una vez cada N ms, por ejemplo al hacer scroll.',
-    language: 'javascript',
-    tags: ['rendimiento', 'eventos'],
-    code: `function throttle(fn, limite = 200) {
-  let ultima = 0;
-  return (...args) => {
-    const ahora = Date.now();
-    if (ahora - ultima >= limite) {
-      ultima = ahora;
-      fn(...args);
-    }
-  };
-}
+    id: 'adivina-numero',
+    title: 'Adiviná el número (búsqueda binaria)',
+    description: 'La computadora adivina un número del 1 al 100 en pocos intentos, partiendo el rango a la mitad.',
+    language: 'python',
+    tags: ['juegos', 'algoritmos'],
+    code: `import random
 
-const tic = throttle((i) => console.log('tic', i), 50);
-let i = 0;
-const id = setInterval(() => {
-  tic(i++);
-  if (i > 20) clearInterval(id);
-}, 10);
+secreto = random.randint(1, 100)
+bajo, alto = 1, 100
+intentos = 0
+
+while True:
+    intentos += 1
+    intento = (bajo + alto) // 2
+    if intento == secreto:
+        print(f"¡Es el {intento}! Lo adiviné en {intentos} intentos.")
+        break
+    elif intento < secreto:
+        print(f"{intento}: es más grande")
+        bajo = intento + 1
+    else:
+        print(f"{intento}: es más chico")
+        alto = intento - 1
 `,
   },
   {
-    id: 'deep-clone',
-    title: 'Copia profunda',
-    description: 'Copia objetos anidados, listas, fechas y Maps con structuredClone, que viene con el navegador.',
-    language: 'javascript',
-    tags: ['objetos'],
-    code: `const original = {
-  nombre: 'Pestle',
-  creado: new Date('2024-01-01'),
-  etiquetas: ['código', 'compartir'],
-  datos: new Map([['visitas', 42]]),
-};
+    id: 'calculadora-imc',
+    title: 'Calculadora de IMC',
+    description: 'Funciones con varios parámetros, redondeo y decisiones con if/elif/else.',
+    language: 'python',
+    tags: ['funciones', 'principiante'],
+    code: `def imc(peso_kg, altura_m):
+    return peso_kg / altura_m ** 2
 
-const copia = structuredClone(original);
-copia.etiquetas.push('copia');
-copia.datos.set('visitas', 43);
 
-console.log('etiquetas del original:', original.etiquetas);
-console.log('etiquetas de la copia:', copia.etiquetas);
-console.log('visitas del original:', original.datos.get('visitas'));
-console.log('¿la fecha sigue siendo Date?', copia.creado instanceof Date);
+def categoria(valor):
+    if valor < 18.5:
+        return "bajo peso"
+    elif valor < 25:
+        return "peso saludable"
+    elif valor < 30:
+        return "sobrepeso"
+    return "obesidad"
+
+
+for peso, altura in [(55, 1.70), (72, 1.75), (95, 1.80)]:
+    valor = imc(peso, altura)
+    print(f"{peso} kg, {altura} m → IMC {valor:.1f} ({categoria(valor)})")
 `,
   },
   {
-    id: 'group-by',
-    title: 'Agrupar por',
-    description: 'Agrupa una lista de objetos según una propiedad o una función.',
-    language: 'javascript',
-    tags: ['listas'],
-    code: `function agruparPor(lista, clave) {
-  const obtenerClave = typeof clave === 'function' ? clave : (item) => item[clave];
-  return lista.reduce((grupos, item) => {
-    const k = obtenerClave(item);
-    (grupos[k] ||= []).push(item);
-    return grupos;
-  }, {});
-}
-
-const personas = [
-  { nombre: 'Ana', ciudad: 'Rosario', edad: 31 },
-  { nombre: 'Luis', ciudad: 'Córdoba', edad: 24 },
-  { nombre: 'Sofi', ciudad: 'Rosario', edad: 17 },
-];
-
-console.log(agruparPor(personas, 'ciudad'));
-console.log(agruparPor(personas, (p) => (p.edad >= 18 ? 'mayores' : 'menores')));
+    id: 'tabla-multiplicar',
+    title: 'Tabla de multiplicar',
+    description: 'Dos bucles for, uno dentro del otro, para armar una tabla prolija.',
+    language: 'python',
+    tags: ['bucles', 'principiante'],
+    code: `n = 6
+print("    " + "".join(f"{i:>4}" for i in range(1, n + 1)))
+print("    " + "-" * 4 * n)
+for fila in range(1, n + 1):
+    celdas = "".join(f"{fila * col:>4}" for col in range(1, n + 1))
+    print(f"{fila:>2} |{celdas}")
 `,
   },
   {
-    id: 'chunk',
-    title: 'Partir una lista en grupos',
-    description: 'Divide una lista en grupos de tamaño fijo (paginación, procesar de a tandas).',
-    language: 'javascript',
-    tags: ['listas'],
-    code: `const partir = (lista, tamanio) =>
-  Array.from({ length: Math.ceil(lista.length / tamanio) }, (_, i) =>
-    lista.slice(i * tamanio, i * tamanio + tamanio)
-  );
+    id: 'contar-palabras',
+    title: 'Contar palabras de un texto',
+    description: 'Limpiar un texto, separarlo en palabras y contar las más repetidas con Counter.',
+    language: 'python',
+    tags: ['textos', 'diccionarios'],
+    code: `from collections import Counter
+import string
 
-console.log(partir([1, 2, 3, 4, 5, 6, 7], 3)); // [[1,2,3],[4,5,6],[7]]
+texto = """
+Python es simple. Python es poderoso.
+Con Python podés automatizar tareas, analizar datos y crear juegos.
+"""
+
+limpio = texto.lower().translate(str.maketrans("", "", string.punctuation))
+palabras = limpio.split()
+conteo = Counter(palabras)
+
+print(f"Palabras: {len(palabras)} ({len(conteo)} distintas)")
+for palabra, veces in conteo.most_common(3):
+    print(f"  {palabra}: {veces}")
 `,
   },
   {
-    id: 'unique',
-    title: 'Quitar repetidos',
-    description: 'Saca los valores repetidos de una lista, y los objetos repetidos según una propiedad.',
-    language: 'javascript',
-    tags: ['listas'],
-    code: `const sinRepetidos = (lista) => [...new Set(lista)];
-const sinRepetidosPor = (lista, clave) => [...new Map(lista.map((x) => [x[clave], x])).values()];
+    id: 'palindromos',
+    title: 'Detectar palíndromos',
+    description: 'Normalizar tildes y espacios para saber si una frase se lee igual al derecho y al revés.',
+    language: 'python',
+    tags: ['textos'],
+    code: `import unicodedata
 
-console.log(sinRepetidos([1, 2, 2, 3, 3, 3]));
-console.log(
-  sinRepetidosPor(
-    [
-      { id: 1, n: 'a' },
-      { id: 2, n: 'b' },
-      { id: 1, n: 'c' },
-    ],
-    'id'
-  )
-);
+
+def normalizar(texto):
+    sin_tildes = unicodedata.normalize("NFD", texto)
+    return "".join(c for c in sin_tildes.lower() if c.isalnum())
+
+
+def es_palindromo(texto):
+    limpio = normalizar(texto)
+    return limpio == limpio[::-1]   # [::-1] da vuelta el texto
+
+
+for frase in ["Neuquén", "Anita lava la tina", "Hola mundo", "Yo hago yoga hoy"]:
+    print(f"{frase!r}: {es_palindromo(frase)}")
 `,
   },
   {
-    id: 'memo-fib',
-    title: 'Memoización',
-    description: 'Guarda los resultados de funciones puras para no recalcularlos. Ejemplo: Fibonacci(90) al instante.',
-    language: 'javascript',
-    tags: ['rendimiento', 'funciones'],
-    code: `function memoizar(fn) {
-  const cache = new Map();
-  return function (n) {
-    if (cache.has(n)) return cache.get(n);
-    const resultado = fn.call(this, n);
-    cache.set(n, resultado);
-    return resultado;
-  };
-}
+    id: 'primos',
+    title: 'Números primos (criba de Eratóstenes)',
+    description: 'Un algoritmo clásico y rápido para encontrar todos los primos hasta un número.',
+    language: 'python',
+    tags: ['algoritmos', 'matemática'],
+    code: `def primos_hasta(n):
+    es_primo = [True] * (n + 1)
+    es_primo[0] = es_primo[1] = False
+    for i in range(2, int(n ** 0.5) + 1):
+        if es_primo[i]:
+            for multiplo in range(i * i, n + 1, i):
+                es_primo[multiplo] = False
+    return [i for i, primo in enumerate(es_primo) if primo]
 
-const fib = memoizar((n) => (n < 2 ? BigInt(n) : fib(n - 1) + fib(n - 2)));
 
-console.log('fib(10) =', fib(10).toString());
-console.log('fib(90) =', fib(90).toString());
+print(primos_hasta(50))
+print("Primos menores a un millón:", len(primos_hasta(1_000_000)))
 `,
   },
   {
-    id: 'retry',
-    title: 'Reintentar con espera creciente',
-    description: 'Reintenta una operación asíncrona esperando cada vez el doble (backoff exponencial).',
-    language: 'javascript',
-    tags: ['async', 'red'],
-    code: `const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
+    id: 'fibonacci-generador',
+    title: 'Fibonacci con un generador',
+    description: 'Un generador infinito con yield y cómo tomar solo los primeros valores con islice.',
+    language: 'python',
+    tags: ['generadores', 'matemática'],
+    code: `from itertools import islice
 
-async function reintentar(fn, { intentos = 3, espera = 100 } = {}) {
-  for (let intento = 0; ; intento++) {
-    try {
-      return await fn(intento);
-    } catch (err) {
-      if (intento >= intentos) throw err;
-      const ms = espera * 2 ** intento;
-      console.log('falló el intento ' + (intento + 1) + ', reintento en ' + ms + ' ms');
-      await dormir(ms);
-    }
-  }
-}
 
-// Demo: falla dos veces y a la tercera funciona
-reintentar(async (intento) => {
-  if (intento < 2) throw new Error('inestable');
-  return 'funcionó en el intento ' + (intento + 1);
-}).then(console.log);
+def fibonacci():
+    a, b = 0, 1
+    while True:        # infinito: yield entrega un valor por vez
+        yield a
+        a, b = b, a + b
+
+
+print(list(islice(fibonacci(), 15)))
+print("El número 100:", next(islice(fibonacci(), 100, None)))
 `,
   },
   {
-    id: 'fetch-timeout',
-    title: 'Pedir JSON con tiempo límite',
-    description: 'Una función sobre fetch() que cancela el pedido si tarda demasiado y avisa si el servidor responde con error.',
-    language: 'javascript',
-    tags: ['async', 'red'],
-    code: `async function pedirJSON(url, { limite = 5000, ...opciones } = {}) {
-  const res = await fetch(url, { ...opciones, signal: AbortSignal.timeout(limite) });
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  return res.json();
-}
+    id: 'lista-compras',
+    title: 'Lista de compras con totales',
+    description: 'Listas de diccionarios, sumas, el más caro con max() y ordenar con sorted().',
+    language: 'python',
+    tags: ['listas', 'diccionarios'],
+    code: `compras = [
+    {"producto": "Yerba", "precio": 2500, "cantidad": 2},
+    {"producto": "Pan", "precio": 1200, "cantidad": 1},
+    {"producto": "Leche", "precio": 1100, "cantidad": 3},
+    {"producto": "Dulce de leche", "precio": 3200, "cantidad": 1},
+]
 
-pedirJSON('https://api.github.com/repos/facebook/react')
-  .then((repo) => console.log(repo.full_name, '★', repo.stargazers_count))
-  .catch((err) => console.error('Falló el pedido:', err.message));
+for item in compras:
+    item["subtotal"] = item["precio"] * item["cantidad"]
+
+total = sum(item["subtotal"] for item in compras)
+mas_caro = max(compras, key=lambda item: item["subtotal"])
+
+for item in sorted(compras, key=lambda item: item["subtotal"], reverse=True):
+    print(f"{item['producto']:<15} {item['cantidad']} x {item['precio']:>5} = {item['subtotal']:>6}")
+print(f"{'TOTAL':<15} {total:>22}")
+print("Lo que más gastaste:", mas_caro["producto"])
 `,
   },
   {
-    id: 'format',
-    title: 'Formatear plata, números y fechas',
-    description: 'Formatos según el país con la API Intl que trae JavaScript, sin librerías.',
-    language: 'javascript',
-    tags: ['formatos', 'textos'],
-    code: `const pesos = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' });
-const dolares = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
-const compacto = new Intl.NumberFormat('es', { notation: 'compact' });
-const fecha = new Intl.DateTimeFormat('es-AR', { dateStyle: 'full' });
-const relativo = new Intl.RelativeTimeFormat('es', { numeric: 'auto' });
+    id: 'fechas',
+    title: 'Fechas: cuántos días faltan',
+    description: 'Crear fechas, restarlas, sumar días con timedelta y mostrarlas en formato argentino.',
+    language: 'python',
+    tags: ['fechas', 'módulos'],
+    code: `from datetime import date, timedelta
 
-console.log(pesos.format(1234567.891));
-console.log(dolares.format(1234567.891));
-console.log(compacto.format(1234567));
-console.log(fecha.format(new Date(2025, 11, 25)));
-console.log(relativo.format(-1, 'day'), '/', relativo.format(3, 'week'));
+hoy = date(2025, 3, 10)                    # usá date.today() para la fecha real
+vacaciones = date(2025, 7, 14)
+
+faltan = vacaciones - hoy
+print(f"Faltan {faltan.days} días para las vacaciones")
+print("En 100 días va a ser:", (hoy + timedelta(days=100)).strftime("%d/%m/%Y"))
+
+dias = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"]
+print("El 9/7/2025 cae", dias[date(2025, 7, 9).weekday()])
 `,
   },
   {
-    id: 'slugify',
-    title: 'Convertir un título en URL (slug)',
-    description: 'Transforma cualquier título (con tildes y todo) en un texto seguro para usar en una URL.',
-    language: 'javascript',
-    tags: ['textos', 'slugify', 'url'],
-    code: `const aSlug = (texto) =>
-  texto
-    .normalize('NFD')
-    .replace(/[\\u0300-\\u036f]/g, '')
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+    id: 'json',
+    title: 'Leer y escribir JSON',
+    description: 'Convertir datos de Python a texto JSON y al revés, como hacen las APIs.',
+    language: 'python',
+    tags: ['datos', 'json'],
+    code: `import json
 
-console.log(aSlug('¡Hola Mundo! Código en Acción 2025'));
-console.log(aSlug('  Ñandú & Café con Leche  '));
+alumno = {"nombre": "Luis", "notas": [8, 9, 7], "activo": True, "apodo": None}
+
+texto = json.dumps(alumno, ensure_ascii=False, indent=2)
+print(texto)                       # True → true, None → null
+
+de_vuelta = json.loads(texto)
+promedio = sum(de_vuelta["notas"]) / len(de_vuelta["notas"])
+print(f"Promedio de {de_vuelta['nombre']}: {promedio:.2f}")
 `,
   },
   {
-    id: 'validate-email',
-    title: 'Validar email y contraseña',
-    description: 'Validación práctica de formularios, con mensajes de error que ayudan.',
-    language: 'javascript',
-    tags: ['formularios', 'validación'],
-    code: `const esEmail = (s) => /^[^\\s@]+@[^\\s@]+\\.[^\\s@]{2,}$/.test(s);
+    id: 'py-csv',
+    title: 'Resumir un archivo CSV',
+    description: 'Lee un CSV y suma una columna por grupo, usando solo la biblioteca estándar.',
+    language: 'python',
+    tags: ['datos', 'archivos'],
+    code: `import csv
+import io
+from collections import defaultdict
 
-function revisarClave(clave) {
-  const faltan = [];
-  if (clave.length < 8) faltan.push('al menos 8 caracteres');
-  if (!/[A-Z]/.test(clave)) faltan.push('una mayúscula');
-  if (!/[a-z]/.test(clave)) faltan.push('una minúscula');
-  if (!/\\d/.test(clave)) faltan.push('un número');
-  return faltan.length ? 'Le falta: ' + faltan.join(', ') : 'Contraseña segura';
-}
+# Para un archivo de verdad, cambiá io.StringIO(...) por open("ventas.csv", newline="")
+datos = io.StringIO("""region,producto,monto
+Norte,Lapiceras,120.5
+Sur,Lapiceras,80
+Norte,Papel,45.25
+Sur,Papel,99.9
+""")
 
-console.log(esEmail('dev@pestle.app'), esEmail('esto-no-es-un-email'));
-console.log(revisarClave('abc'));
-console.log(revisarClave('Pestle2025'));
+totales = defaultdict(float)
+for fila in csv.DictReader(datos):
+    totales[fila["region"]] += float(fila["monto"])
+
+for region, total in sorted(totales.items()):
+    print(f"{region:<6} {total:>8.2f}")
 `,
   },
   {
-    id: 'random-id',
-    title: 'IDs al azar seguros y UUIDs',
-    description: 'Identificadores criptográficamente seguros con la API Web Crypto.',
-    language: 'javascript',
-    tags: ['criptografía', 'textos'],
-    code: `function idAlAzar(largo = 12) {
-  const alfabeto = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  const bytes = crypto.getRandomValues(new Uint8Array(largo));
-  return Array.from(bytes, (b) => alfabeto[b % alfabeto.length]).join('');
-}
+    id: 'archivos',
+    title: 'Guardar y leer un archivo de texto',
+    description: 'Escribir líneas en un archivo con with open(...) y volver a leerlas.',
+    language: 'python',
+    tags: ['archivos'],
+    code: `tareas = ["Estudiar Python", "Hacer el proyecto final", "Pedir el certificado"]
 
-console.log('uuid:', crypto.randomUUID());
-console.log('id corto:', idAlAzar());
-console.log('token:', idAlAzar(32));
+with open("tareas.txt", "w", encoding="utf-8") as archivo:
+    for tarea in tareas:
+        archivo.write(tarea + "\\n")
+
+with open("tareas.txt", encoding="utf-8") as archivo:
+    for numero, linea in enumerate(archivo, start=1):
+        print(f"{numero}. {linea.strip()}")
 `,
   },
   {
-    id: 'sha256',
-    title: 'Hash SHA-256',
-    description: 'Calcula el hash de un texto en hexadecimal con SubtleCrypto (anda en el navegador y en Node 18+).',
-    language: 'javascript',
-    tags: ['criptografía'],
-    code: `async function sha256(texto) {
-  const datos = new TextEncoder().encode(texto);
-  const resumen = await crypto.subtle.digest('SHA-256', datos);
-  return Array.from(new Uint8Array(resumen), (b) => b.toString(16).padStart(2, '0')).join('');
-}
+    id: 'clase-cuenta',
+    title: 'Clase: cuenta bancaria',
+    description: 'Una clase con atributos, métodos, una propiedad y un error propio.',
+    language: 'python',
+    tags: ['clases', 'errores'],
+    code: `class SaldoInsuficiente(Exception):
+    pass
 
-sha256('hola mundo').then((hash) => console.log(hash));
-// 0b894166d3336435c800bea36ff21b29eaa801a52f584c006c49289a0dcf6e2f
+
+class Cuenta:
+    def __init__(self, titular):
+        self.titular = titular
+        self.movimientos = []
+
+    @property
+    def saldo(self):
+        return sum(self.movimientos)
+
+    def depositar(self, monto):
+        self.movimientos.append(monto)
+
+    def retirar(self, monto):
+        if monto > self.saldo:
+            raise SaldoInsuficiente(f"Querés sacar {monto} y tenés {self.saldo}")
+        self.movimientos.append(-monto)
+
+
+cuenta = Cuenta("Ana")
+cuenta.depositar(5000)
+cuenta.retirar(1200)
+print(f"Saldo de {cuenta.titular}: {cuenta.saldo}")
+try:
+    cuenta.retirar(10000)
+except SaldoInsuficiente as error:
+    print("No se pudo:", error)
 `,
   },
   {
-    id: 'event-emitter',
-    title: 'Emisor de eventos',
-    description: 'Publicar y suscribirse en 15 líneas: on, off, once y emit.',
-    language: 'javascript',
-    tags: ['patrones', 'eventos'],
-    code: `class Emisor {
-  #oyentes = new Map();
-  on(evento, fn) {
-    if (!this.#oyentes.has(evento)) this.#oyentes.set(evento, new Set());
-    this.#oyentes.get(evento).add(fn);
-    return () => this.off(evento, fn);
-  }
-  off(evento, fn) {
-    this.#oyentes.get(evento)?.delete(fn);
-  }
-  once(evento, fn) {
-    const quitar = this.on(evento, (...args) => {
-      quitar();
-      fn(...args);
-    });
-  }
-  emit(evento, ...args) {
-    this.#oyentes.get(evento)?.forEach((fn) => fn(...args));
-  }
-}
+    id: 'dataclass',
+    title: 'Dataclasses',
+    description: 'Clases para guardar datos sin escribir __init__ a mano, con orden y comparación automáticos.',
+    language: 'python',
+    tags: ['clases'],
+    code: `from dataclasses import dataclass, field
 
-const canal = new Emisor();
-canal.on('publicado', (id) => console.log('nuevo código', id));
-canal.once('publicado', () => console.log('(solo el primero)'));
-canal.emit('publicado', 'abc123');
-canal.emit('publicado', 'def456');
+
+@dataclass(order=True)
+class Jugador:
+    puntos: int
+    nombre: str = field(compare=False)
+
+
+tabla = [Jugador(12, "Lu"), Jugador(30, "Gonza"), Jugador(21, "Sofi")]
+for posicion, jugador in enumerate(sorted(tabla, reverse=True), start=1):
+    print(posicion, jugador)
 `,
   },
   {
-    id: 'sort-by',
-    title: 'Ordenar por varios campos',
-    description: 'Orden estable por varias propiedades, cada una ascendente o descendente.',
-    language: 'javascript',
-    tags: ['listas'],
-    code: `const ordenarPor = (...claves) => (a, b) => {
-  for (const clave of claves) {
-    const desc = clave.startsWith('-');
-    const k = desc ? clave.slice(1) : clave;
-    if (a[k] < b[k]) return desc ? 1 : -1;
-    if (a[k] > b[k]) return desc ? -1 : 1;
-  }
-  return 0;
-};
+    id: 'decorador-tiempo',
+    title: 'Decorador que mide el tiempo',
+    description: 'Un decorador reutilizable que avisa cuánto tardó cualquier función.',
+    language: 'python',
+    tags: ['decoradores', 'funciones'],
+    code: `import time
+from functools import wraps
 
-const tabla = [
-  { equipo: 'Boca', pts: 30, dif: 12 },
-  { equipo: 'River', pts: 32, dif: 15 },
-  { equipo: 'Racing', pts: 30, dif: 18 },
-];
 
-console.log(tabla.sort(ordenarPor('-pts', '-dif')).map((f) => f.equipo)); // River, Racing, Boca
+def cronometrar(funcion):
+    @wraps(funcion)
+    def envoltura(*args, **kwargs):
+        inicio = time.perf_counter()
+        resultado = funcion(*args, **kwargs)
+        print(f"{funcion.__name__} tardó {(time.perf_counter() - inicio) * 1000:.1f} ms")
+        return resultado
+    return envoltura
+
+
+@cronometrar
+def suma_cuadrados(n):
+    return sum(i * i for i in range(n))
+
+
+print(suma_cuadrados(1_000_000))
 `,
   },
   {
-    id: 'html-todo',
-    title: 'Lista de tareas',
-    description: 'Una app de tareas completa y sin dependencias: agregar, tachar y borrar.',
-    language: 'html',
-    tags: ['app', 'dom'],
-    code: `<!doctype html>
-<html>
-<head>
-<style>
-  body { font-family: system-ui, sans-serif; max-width: 420px; margin: 24px auto; padding: 0 16px; }
-  form { display: flex; gap: 8px; }
-  input { flex: 1; padding: 8px; border: 1px solid #141414; }
-  button { padding: 8px 12px; border: 1px solid #141414; background: #141414; color: #fff; cursor: pointer; }
-  ul { list-style: none; padding: 0; }
-  li { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid #ddd; }
-  li.hecha span { text-decoration: line-through; opacity: .5; }
-  li span { flex: 1; cursor: pointer; }
-  .borrar { background: transparent; color: #c00; border: none; }
-</style>
-</head>
-<body>
-  <h2>Tareas</h2>
-  <form id="form">
-    <input id="input" placeholder="¿Qué tenés que hacer?" autocomplete="off" />
-    <button>Agregar</button>
-  </form>
-  <ul id="lista"></ul>
-  <p id="cuenta"></p>
+    id: 'regex-emails',
+    title: 'Buscar emails y teléfonos con regex',
+    description: 'Extraer datos de un texto con expresiones regulares del módulo re.',
+    language: 'python',
+    tags: ['textos', 'regex'],
+    code: `import re
 
-<script>
-  const tareas = [{ texto: 'Compartir un código en Pestle', hecha: true }, { texto: 'Probar el ejecutor', hecha: false }];
-  const lista = document.getElementById('lista');
+texto = """Escribime a ana.gomez@mail.com o a soporte@pestle.com.ar.
+Teléfonos: 341-555-1234 y (011) 4444-5555."""
 
-  function mostrar() {
-    lista.innerHTML = '';
-    tareas.forEach((tarea, i) => {
-      const li = document.createElement('li');
-      li.className = tarea.hecha ? 'hecha' : '';
-      const span = document.createElement('span');
-      span.textContent = tarea.texto;
-      span.onclick = () => { tarea.hecha = !tarea.hecha; mostrar(); };
-      const borrar = document.createElement('button');
-      borrar.className = 'borrar';
-      borrar.textContent = '✕';
-      borrar.onclick = () => { tareas.splice(i, 1); mostrar(); };
-      li.append(span, borrar);
-      lista.append(li);
-    });
-    const pendientes = tareas.filter(t => !t.hecha).length;
-    document.getElementById('cuenta').textContent = 'Pendientes: ' + pendientes;
-  }
+emails = re.findall(r"[\\w.+-]+@[\\w-]+(?:\\.[\\w-]+)+", texto)
+telefonos = re.findall(r"\\(?\\d{2,4}\\)?[ -]?\\d{3,4}-\\d{4}", texto)
 
-  document.getElementById('form').onsubmit = (e) => {
-    e.preventDefault();
-    const input = document.getElementById('input');
-    if (!input.value.trim()) return;
-    tareas.push({ texto: input.value.trim(), hecha: false });
-    input.value = '';
-    mostrar();
-  };
-
-  mostrar();
-</script>
-</body>
-</html>
+print("Emails:", emails)
+print("Teléfonos:", telefonos)
+print(re.sub(r"@[\\w.-]+", "@***", texto.splitlines()[0]))   # ocultar dominios
 `,
   },
   {
-    id: 'html-counter',
-    title: 'Contador interactivo',
-    description: 'Un contador mínimo para ver cómo funcionan los eventos del DOM y el estado.',
-    language: 'html',
-    tags: ['dom', 'principiante'],
-    code: `<div style="font-family: system-ui; text-align: center; padding: 32px">
-  <h1 id="valor" style="font-size: 64px; margin: 0">0</h1>
-  <button id="restar">−</button>
-  <button id="reiniciar">reiniciar</button>
-  <button id="sumar">+</button>
-</div>
+    id: 'contrasenas',
+    title: 'Generar contraseñas seguras',
+    description: 'Contraseñas al azar con el módulo secrets, pensado para seguridad (no uses random para esto).',
+    language: 'python',
+    tags: ['seguridad', 'módulos'],
+    code: `import secrets
+import string
 
-<script>
-  let cuenta = 0;
-  const valor = document.getElementById('valor');
-  const actualizar = (n) => { cuenta = n; valor.textContent = cuenta; console.log('cuenta =', cuenta); };
-  document.getElementById('sumar').onclick = () => actualizar(cuenta + 1);
-  document.getElementById('restar').onclick = () => actualizar(cuenta - 1);
-  document.getElementById('reiniciar').onclick = () => actualizar(0);
-</script>
-`,
-  },
-  {
-    id: 'html-fetch-users',
-    title: 'Traer datos de una API y mostrarlos',
-    description: 'Carga usuarios de una API pública y los muestra como tarjetas, con estados de carga y de error.',
-    language: 'html',
-    tags: ['dom', 'red'],
-    code: `<div id="app" style="font-family: system-ui; padding: 16px">Cargando…</div>
 
-<script>
-  const app = document.getElementById('app');
+def generar(largo=16):
+    caracteres = string.ascii_letters + string.digits + "!@#$%&*"
+    while True:
+        clave = "".join(secrets.choice(caracteres) for _ in range(largo))
+        # Que tenga al menos una minúscula, una mayúscula y un número
+        if any(c.islower() for c in clave) and any(c.isupper() for c in clave) and any(c.isdigit() for c in clave):
+            return clave
 
-  fetch('https://jsonplaceholder.typicode.com/users')
-    .then((res) => {
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      return res.json();
-    })
-    .then((usuarios) => {
-      app.innerHTML = '';
-      usuarios.slice(0, 6).forEach((u) => {
-        const tarjeta = document.createElement('div');
-        tarjeta.style.cssText = 'border:1px solid #141414;padding:12px;margin-bottom:8px';
-        tarjeta.innerHTML = '<strong></strong><br><small></small>';
-        tarjeta.querySelector('strong').textContent = u.name;
-        tarjeta.querySelector('small').textContent = u.email + ' · ' + u.address.city;
-        app.append(tarjeta);
-      });
-      console.log('Se cargaron', usuarios.length, 'usuarios');
-    })
-    .catch((err) => {
-      app.textContent = 'No se pudieron cargar los usuarios: ' + err.message;
-      console.error(err.message);
-    });
-</script>
-`,
-  },
-  {
-    id: 'css-center',
-    title: 'Centrar cualquier cosa',
-    description: 'Las dos formas modernas de centrar un elemento: grid y flexbox.',
-    language: 'css',
-    tags: ['diseño'],
-    code: `.centrado-grid {
-  display: grid;
-  place-items: center;
-  height: 140px;
-  background: #E4E3E0;
-  margin-bottom: 12px;
-}
 
-.centrado-flex {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 140px;
-  background: #141414;
-  color: #E4E3E0;
-}
-`,
-    demo: `<div class="centrado-grid"><div>Centrado con grid</div></div>
-<div class="centrado-flex"><div>Centrado con flexbox</div></div>`,
-  },
-  {
-    id: 'css-loader',
-    title: 'Ruedita de carga en CSS',
-    description: 'Un indicador de carga hecho solo con CSS, sin imágenes ni JavaScript.',
-    language: 'css',
-    tags: ['animación'],
-    code: `.ruedita {
-  width: 48px;
-  height: 48px;
-  border: 5px solid #E4E3E0;
-  border-top-color: #141414;
-  border-radius: 50%;
-  animation: girar 0.8s linear infinite;
-  margin: 40px auto;
-}
-
-@keyframes girar {
-  to { transform: rotate(360deg); }
-}
-`,
-    demo: `<div class="ruedita"></div>`,
-  },
-  {
-    id: 'css-responsive-grid',
-    title: 'Grilla de tarjetas adaptable',
-    description: 'Una grilla que acomoda las tarjetas sola según el ancho, sin media queries.',
-    language: 'css',
-    tags: ['diseño', 'responsive'],
-    code: `.tarjetas {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 12px;
-  font-family: system-ui, sans-serif;
-}
-
-.tarjeta {
-  border: 1px solid #141414;
-  padding: 16px;
-  box-shadow: 4px 4px 0 #141414;
-  background: white;
-}
-`,
-    demo: `<div class="tarjetas">
-  <div class="tarjeta">Uno</div><div class="tarjeta">Dos</div><div class="tarjeta">Tres</div>
-  <div class="tarjeta">Cuatro</div><div class="tarjeta">Cinco</div>
-</div>`,
-  },
-  {
-    id: 'ts-result',
-    title: 'Resultado tipado (Result)',
-    description: 'Manejá errores sin llenar todo de try/catch, con tipos de TypeScript.',
-    language: 'typescript',
-    tags: ['tipos', 'errores'],
-    code: `type Resultado<T, E = Error> = { ok: true; valor: T } | { ok: false; error: E };
-
-async function intentar<T>(fn: () => Promise<T>): Promise<Resultado<T>> {
-  try {
-    return { ok: true, valor: await fn() };
-  } catch (error) {
-    return { ok: false, error: error instanceof Error ? error : new Error(String(error)) };
-  }
-}
-
-// Uso
-const resultado = await intentar(() => fetch('/api/health').then((r) => r.json()));
-if (resultado.ok) {
-  console.log('Funciona:', resultado.valor);
-} else {
-  console.error('Falló:', resultado.error.message);
-}
-`,
-  },
-  {
-    id: 'ts-use-local-storage',
-    title: 'Hook de React useLocalStorage',
-    description: 'Un useState que se guarda en localStorage y sobrevive a las recargas.',
-    language: 'typescript',
-    tags: ['react', 'hooks'],
-    code: `import { useEffect, useState } from 'react';
-
-export function useLocalStorage<T>(clave: string, inicial: T) {
-  const [valor, setValor] = useState<T>(() => {
-    try {
-      const guardado = localStorage.getItem(clave);
-      return guardado !== null ? (JSON.parse(guardado) as T) : inicial;
-    } catch {
-      return inicial;
-    }
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(clave, JSON.stringify(valor));
-    } catch {
-      // almacenamiento lleno o bloqueado: queda el valor en memoria
-    }
-  }, [clave, valor]);
-
-  return [valor, setValor] as const;
-}
-
-// const [tema, setTema] = useLocalStorage('tema', 'claro');
+for _ in range(3):
+    print(generar())
+print("Token para una URL:", secrets.token_urlsafe(16))
 `,
   },
   {
@@ -665,32 +461,6 @@ def borrar_producto(producto_id: int):
 `,
   },
   {
-    id: 'py-csv',
-    title: 'Resumir un archivo CSV',
-    description: 'Lee un CSV y suma una columna por grupo, usando solo la biblioteca estándar.',
-    language: 'python',
-    tags: ['datos', 'archivos'],
-    code: `import csv
-import io
-from collections import defaultdict
-
-# Para un archivo de verdad, cambiá io.StringIO(...) por open("ventas.csv", newline="")
-datos = io.StringIO("""region,producto,monto
-Norte,Lapiceras,120.5
-Sur,Lapiceras,80
-Norte,Papel,45.25
-Sur,Papel,99.9
-""")
-
-totales = defaultdict(float)
-for fila in csv.DictReader(datos):
-    totales[fila["region"]] += float(fila["monto"])
-
-for region, total in sorted(totales.items()):
-    print(f"{region:<6} {total:>8.2f}")
-`,
-  },
-  {
     id: 'py-scraper',
     runLocally: 'python scraper.py',
     title: 'Obtener el título de una página web',
@@ -725,57 +495,6 @@ with urlopen(pedido, timeout=10) as respuesta:
     lector.feed(respuesta.read().decode("utf-8", errors="replace"))
 
 print("Título:", lector.titulo.strip())
-`,
-  },
-  {
-    id: 'json-vercel',
-    title: 'vercel.json para una SPA',
-    description: 'Publicá una app de una sola página en Vercel, con rutas de API y caché larga para los archivos estáticos.',
-    language: 'json',
-    tags: ['configuración', 'deploy'],
-    code: `{
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }],
-  "headers": [
-    {
-      "source": "/assets/(.*)",
-      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
-    }
-  ]
-}
-`,
-  },
-  {
-    id: 'md-readme',
-    title: 'Plantilla de README',
-    description: 'Una estructura prolija de README para cualquier proyecto.',
-    language: 'markdown',
-    tags: ['documentación'],
-    code: `# Nombre del proyecto
-
-Una oración sobre qué hace este proyecto y para quién es.
-
-## Funciones
-
-- Función uno
-- Función dos
-
-## Cómo empezar
-
-\`\`\`bash
-npm install
-npm run dev
-\`\`\`
-
-## Configuración
-
-| Variable | Descripción | Valor por defecto |
-| --- | --- | --- |
-| \`PORT\` | Puerto donde escucha | \`3000\` |
-
-## Licencia
-
-MIT
 `,
   },
 ];
