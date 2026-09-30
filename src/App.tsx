@@ -13,10 +13,11 @@ import ApkLink from './components/ApkLink';
 import { cn } from './lib/utils';
 import { ToastProvider } from './components/Toast';
 import AchievementWatcher from './components/AchievementWatcher';
-import Home from './pages/Home';
+import Inicio from './pages/Inicio';
 import { Spinner } from './components/ui';
 
 // Pages other than the editor load on demand, keeping the first download small.
+const Home = lazy(() => import('./pages/Home'));
 const PasteView = lazy(() => import('./pages/PasteView'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Codes = lazy(() => import('./pages/Codes'));
@@ -36,7 +37,7 @@ const ApiDocs = lazy(() => import('./pages/Info').then((m) => ({ default: m.ApiD
 const NotFound = lazy(() => import('./pages/Info').then((m) => ({ default: m.NotFound })));
 
 const NAV_ITEMS = [
-  { to: '/', label: 'Nuevo', icon: Plus, end: true },
+  { to: '/nuevo', label: 'Nuevo', icon: Plus, end: false },
   { to: '/codes', label: 'Biblioteca', icon: Library, end: false },
   { to: '/guia', label: 'Guía', icon: BookOpenText, end: false },
   { to: '/cursos', label: 'Cursos', icon: GraduationCap, end: false },
@@ -187,7 +188,8 @@ export default function App() {
               }
             >
             <Routes>
-              <Route path="/" element={<Home />} />
+              <Route path="/" element={<Inicio />} />
+              <Route path="/nuevo" element={<Home />} />
               <Route path="/paste/:id" element={<PasteView />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/codes" element={<Codes />} />

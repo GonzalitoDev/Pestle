@@ -35,7 +35,7 @@ export default function Dashboard() {
         title="Mis códigos"
         description="Lo que publicaste desde este navegador. Solo vos podés borrarlo."
         actions={
-          <Link to="/" className={buttonClass('primary')}>
+          <Link to="/nuevo" className={buttonClass('primary')}>
             <Plus className="size-4" aria-hidden /> Nuevo
           </Link>
         }
@@ -55,7 +55,7 @@ export default function Dashboard() {
           title="Todavía no publicaste nada"
           description="Todo lo que publiques desde este navegador aparece acá."
           action={
-            <Link to="/" className={buttonClass('primary')}>
+            <Link to="/nuevo" className={buttonClass('primary')}>
               Publicar el primero
             </Link>
           }

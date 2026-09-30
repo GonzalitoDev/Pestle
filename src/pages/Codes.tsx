@@ -144,7 +144,7 @@ function SnippetCard({ snippet, onTag }: { snippet: Snippet; onTag: (tag: string
   };
 
   const openInEditor = () =>
-    navigate('/', { state: { title: snippet.title, content: snippet.code, language: snippet.language } });
+    navigate('/nuevo', { state: { title: snippet.title, content: snippet.code, language: snippet.language } });
 
   const visibleCode = expanded ? snippet.code : snippet.code.split('\n').slice(0, COLLAPSED_LINES).join('\n');
 

@@ -50,7 +50,7 @@ export default function Explore() {
           title="Todavía no hay nada público"
           description="Publicá algo con visibilidad Público y va a aparecer acá."
           action={
-            <Link to="/" className={buttonClass('primary')}>
+            <Link to="/nuevo" className={buttonClass('primary')}>
               Publicar el primero
             </Link>
           }
