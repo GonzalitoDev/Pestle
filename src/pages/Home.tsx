@@ -1,10 +1,8 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Send, Play, Globe, Link2, Sparkles, Wand2, Smartphone, Download } from 'lucide-react';
+import { Send, Play, Globe, Link2, Sparkles, Smartphone, Download } from 'lucide-react';
 import { pasteService } from '../lib/pasteService';
-import { EXPIRIES, Expiry, LANGUAGES, Language } from '../types';
-import { isRunnable } from '../lib/runnable';
-import { detectLanguage } from '../lib/detectLanguage';
+import { EXPIRIES, Expiry, Language } from '../types';
 import CodeRunner from '../components/CodeRunner';
 import { Button, Card, Field, Kbd, Segmented, Select, buttonClass } from '../components/ui';
 import { useToast } from '../components/Toast';
@@ -17,13 +15,12 @@ interface PrefillState {
   language?: Language;
 }
 
-const labelOf = (l: Language) => LANGUAGES.find((o) => o.value === l)?.label ?? l;
-
 export default function Home() {
   const prefill = (useLocation().state ?? {}) as PrefillState;
   const [content, setContent] = useState(prefill.content ?? '');
   const [title, setTitle] = useState(prefill.title ?? '');
-  const [language, setLanguage] = useState<Language>(prefill.language ?? 'javascript');
+  // Pestle is only for Python.
+  const language: Language = 'python';
   const [running, setRunning] = useState(false);
   const [visibility, setVisibility] = useState<'public' | 'unlisted'>('public');
   const [expiresIn, setExpiresIn] = useState<Expiry>('never');
@@ -52,20 +49,6 @@ export default function Home() {
     }
   };
 
-  const detected = detectLanguage(content);
-  const mismatch =
-    detected && detected !== language && !(detected === 'javascript' && language === 'typescript') ? detected : null;
-
-  // Pasting code picks its language automatically, so it is highlighted and run correctly.
-  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
-    if (content.trim()) return;
-    const guess = detectLanguage(e.clipboardData.getData('text'));
-    if (guess && guess !== language) {
-      setLanguage(guess);
-      toast(`Detectamos ${labelOf(guess)}`, 'info');
-    }
-  };
-
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
       e.preventDefault();
@@ -74,8 +57,8 @@ export default function Home() {
       e.preventDefault();
       const el = e.currentTarget;
       const { selectionStart, selectionEnd } = el;
-      setContent(content.slice(0, selectionStart) + '  ' + content.slice(selectionEnd));
-      requestAnimationFrame(() => el.setSelectionRange(selectionStart + 2, selectionStart + 2));
+      setContent(content.slice(0, selectionStart) + '    ' + content.slice(selectionEnd));
+      requestAnimationFrame(() => el.setSelectionRange(selectionStart + 4, selectionStart + 4));
     }
   };
 
@@ -84,9 +67,9 @@ export default function Home() {
   return (
     <div className="space-y-8 animate-fade-up">
       <header className="space-y-2">
-        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">Compartí código en segundos</h1>
+        <h1 className="text-3xl sm:text-4xl font-semibold tracking-tight">Escribí, probá y compartí código Python</h1>
         <p className="text-muted max-w-2xl">
-          Pegá código o texto, probalo acá mismo y obtené un enlace. Sin crear una cuenta.
+          Escribí o pegá código Python, ejecutalo acá mismo y obtené un enlace para compartirlo. Sin instalar nada y sin crear una cuenta.
         </p>
       </header>
 
@@ -104,16 +87,15 @@ export default function Home() {
                 onChange={(e) => setTitle(e.target.value)}
               />
               <span className="shrink-0 rounded-md bg-surface-2 px-2 py-0.5 font-mono text-[11px] uppercase text-muted">
-                {labelOf(language)}
+                Python
               </span>
             </div>
             <textarea
               aria-label="Contenido"
               className="block h-[440px] w-full resize-y bg-surface p-5 font-mono text-[13px] leading-relaxed outline-none placeholder:text-muted/70"
-              placeholder="Pegá tu código o texto acá…"
+              placeholder={'# Escribí tu código Python acá\nprint("¡Hola, mundo!")'}
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              onPaste={handlePaste}
               onKeyDown={handleKeyDown}
               spellCheck={false}
               autoFocus={!prefill.content}
@@ -128,42 +110,17 @@ export default function Home() {
             </div>
           </Card>
 
-          {mismatch && (
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-accent/30 bg-accent-soft px-4 py-3 text-sm animate-fade-up">
-              <span className="flex items-center gap-2">
-                <Wand2 className="size-4 shrink-0 text-accent" aria-hidden />
-                <span>
-                  Parece <strong>{labelOf(mismatch)}</strong>, pero el lenguaje elegido es {labelOf(language)}.
-                </span>
-              </span>
-              <Button size="sm" variant="accent" onClick={() => setLanguage(mismatch)}>
-                Cambiar a {labelOf(mismatch)}
-              </Button>
-            </div>
+          {running ? (
+            <CodeRunner code={content} language={language} onClose={() => setRunning(false)} />
+          ) : (
+            <Button variant="success" icon={Play} disabled={!content.trim()} onClick={() => setRunning(true)}>
+              Probar
+            </Button>
           )}
-
-          {isRunnable(language) &&
-            (running ? (
-              <CodeRunner code={content} language={language} onClose={() => setRunning(false)} />
-            ) : (
-              <Button variant="success" icon={Play} disabled={!content.trim()} onClick={() => setRunning(true)}>
-                Probar
-              </Button>
-            ))}
         </div>
 
         <aside className="space-y-4">
           <Card className="p-5 space-y-5 lg:sticky lg:top-24">
-            <Field label="Lenguaje" htmlFor="language">
-              <Select id="language" value={language} onChange={(e) => setLanguage(e.target.value as Language)}>
-                {LANGUAGES.map((lang) => (
-                  <option key={lang.value} value={lang.value}>
-                    {lang.label}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-
             <Field label="Vence" htmlFor="expires">
               <Select id="expires" value={expiresIn} onChange={(e) => setExpiresIn(e.target.value as Expiry)}>
                 {EXPIRIES.map((exp) => (
@@ -226,8 +183,9 @@ export default function Home() {
           <div className="flex gap-3 rounded-xl border border-line p-4 text-sm text-muted">
             <Sparkles className="size-4 shrink-0 text-accent mt-0.5" aria-hidden />
             <p>
-              ¿Buscás ideas? La <Link to="/codes" className="text-fg underline underline-offset-2">biblioteca de códigos</Link> tiene
-              ejemplos listos para ejecutar, editar y compartir.
+              ¿Estás empezando? Leé la <Link to="/guia" className="text-fg underline underline-offset-2">guía de Python</Link>, hacé
+              los <Link to="/cursos" className="text-fg underline underline-offset-2">cursos</Link> o mirá la{' '}
+              <Link to="/codes" className="text-fg underline underline-offset-2">biblioteca de ejemplos</Link>.
             </p>
           </div>
         </aside>

@@ -4,7 +4,7 @@
  */
 
 import { BrowserRouter as Router, Routes, Route, Link, NavLink, useLocation } from 'react-router-dom';
-import { Terminal, Plus, FolderOpen, Globe, Library, Menu, X, Sun, Moon, Monitor, AlertTriangle, Smartphone, GraduationCap, Trophy, Medal } from 'lucide-react';
+import { Terminal, Plus, FolderOpen, Globe, Library, Menu, X, Sun, Moon, Monitor, AlertTriangle, Smartphone, GraduationCap, Trophy, Medal, BookOpenText } from 'lucide-react';
 import { Suspense, lazy, useEffect, useState } from 'react';
 import { resolveBackend } from './lib/pasteService';
 import { ThemePreference, useTheme } from './lib/theme';
@@ -25,6 +25,8 @@ const Courses = lazy(() => import('./pages/Courses'));
 const Lesson = lazy(() => import('./pages/Lesson'));
 const Project = lazy(() => import('./pages/Project'));
 const CertificateClaim = lazy(() => import('./pages/CertificateClaim'));
+const GuideIndex = lazy(() => import('./pages/Guide').then((m) => ({ default: m.GuideIndex })));
+const GuideChapter = lazy(() => import('./pages/Guide').then((m) => ({ default: m.GuideChapter })));
 const Ranking = lazy(() => import('./pages/Ranking'));
 const Achievements = lazy(() => import('./pages/Achievements'));
 const Certificate = lazy(() => import('./pages/Certificate'));
@@ -36,6 +38,7 @@ const NotFound = lazy(() => import('./pages/Info').then((m) => ({ default: m.Not
 const NAV_ITEMS = [
   { to: '/', label: 'Nuevo', icon: Plus, end: true },
   { to: '/codes', label: 'Biblioteca', icon: Library, end: false },
+  { to: '/guia', label: 'Guía', icon: BookOpenText, end: false },
   { to: '/cursos', label: 'Cursos', icon: GraduationCap, end: false },
   { to: '/logros', label: 'Logros', icon: Trophy, end: false },
   { to: '/ranking', label: 'Ranking', icon: Medal, end: false },
@@ -126,7 +129,7 @@ export default function App() {
                   </span>
                   <span className="text-lg">Pestle</span>
                 </Link>
-                <div className="hidden lg:flex items-center gap-1">
+                <div className="hidden xl:flex items-center gap-1">
                   {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
                     <NavLink key={to} to={to} end={end} className={desktopLink}>
                       <Icon className="size-4" aria-hidden /> {label}
@@ -142,7 +145,7 @@ export default function App() {
                 <ThemeToggle />
                 <button
                   onClick={() => setMenuOpen((o) => !o)}
-                  className="lg:hidden inline-flex h-9 items-center rounded-lg px-2.5 text-fg hover:bg-surface-2"
+                  className="xl:hidden inline-flex h-9 items-center rounded-lg px-2.5 text-fg hover:bg-surface-2"
                   aria-label="Abrir o cerrar el menú"
                   aria-expanded={menuOpen}
                 >
@@ -152,7 +155,7 @@ export default function App() {
             </div>
 
             {menuOpen && (
-              <div className="lg:hidden border-t border-line bg-bg px-4 py-3 space-y-1 animate-fade-up">
+              <div className="xl:hidden border-t border-line bg-bg px-4 py-3 space-y-1 animate-fade-up">
                 {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
                   <NavLink
                     key={to}
@@ -193,6 +196,8 @@ export default function App() {
               <Route path="/cursos/:courseId" element={<Lesson />} />
               <Route path="/cursos/:courseId/proyecto" element={<Project />} />
               <Route path="/cursos/:courseId/certificado" element={<CertificateClaim />} />
+              <Route path="/guia" element={<GuideIndex />} />
+              <Route path="/guia/:chapterId" element={<GuideChapter />} />
               <Route path="/ranking" element={<Ranking />} />
               <Route path="/logros" element={<Achievements />} />
               <Route path="/certificado" element={<Certificate />} />
@@ -209,7 +214,7 @@ export default function App() {
           <footer className="border-t border-line">
             <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-muted sm:flex-row sm:px-6">
               <p>
-                <span className="font-medium text-fg">Pestle</span> · compartí y ejecutá código en tu navegador
+                <span className="font-medium text-fg">Pestle</span> · aprendé, escribí y compartí Python en tu navegador
               </p>
               <div className="flex flex-wrap justify-center gap-5">
                 <Link to="/privacy" className="hover:text-fg">Privacidad</Link>

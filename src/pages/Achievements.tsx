@@ -19,7 +19,7 @@ export default function Achievements() {
       <PageHeader
         icon={Trophy}
         title="Logros"
-        description="Se desbloquean a medida que avanzás en los cursos. Se guardan junto con tu progreso."
+        description="Se desbloquean a medida que leés la guía y avanzás en los cursos. Se guardan junto con tu progreso."
         actions={
           <Link to="/cursos" className={buttonClass('primary')}>
             Seguir aprendiendo

@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Check, ChevronDown, Copy, Download, Library, Pencil, Play, Search, Terminal, X, SearchX } from 'lucide-react';
 import { SNIPPETS, Snippet, isRunnable } from '../data/snippets';
-import { LANGUAGES } from '../types';
 import CodeRunner from '../components/CodeRunner';
 import CodeBlock from '../components/CodeBlock';
 import { Button, Card, EmptyState, Kbd, LanguageBadge, PageHeader } from '../components/ui';
@@ -14,7 +13,7 @@ const COLLAPSED_LINES = 16;
 export default function Codes() {
   const [params, setParams] = useSearchParams();
   const query = params.get('q') ?? '';
-  const language = params.get('lang') ?? 'all';
+  const topic = params.get('tema') ?? 'all';
   const searchRef = useRef<HTMLInputElement>(null);
 
   const updateParam = (key: string, value: string) => {
@@ -37,33 +36,34 @@ export default function Codes() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  const languageFilters = useMemo(
-    () => [
+  const topicFilters = useMemo(() => {
+    const counts = new Map<string, number>();
+    SNIPPETS.forEach((s) => s.tags.forEach((t) => counts.set(t, (counts.get(t) ?? 0) + 1)));
+    return [
       { value: 'all', label: 'Todos', count: SNIPPETS.length },
-      ...LANGUAGES.map((l) => ({ ...l, count: SNIPPETS.filter((s) => s.language === l.value).length })).filter((l) => l.count > 0),
-    ],
-    []
-  );
+      ...[...counts].filter(([, n]) => n > 1).sort((a, b) => b[1] - a[1]).map(([t, n]) => ({ value: t, label: t, count: n })),
+    ];
+  }, []);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return SNIPPETS.filter(
       (s) =>
-        (language === 'all' || s.language === language) &&
+        (topic === 'all' || s.tags.includes(topic)) &&
         (!q ||
           s.title.toLowerCase().includes(q) ||
           s.description.toLowerCase().includes(q) ||
           s.tags.some((t) => t.includes(q)) ||
           s.code.toLowerCase().includes(q))
     );
-  }, [query, language]);
+  }, [query, topic]);
 
   return (
     <div className="space-y-6 animate-fade-up">
       <PageHeader
         icon={Library}
-        title="Biblioteca de códigos"
-        description={`${SNIPPETS.length} ejemplos probados. Ejecutalos acá, copialos o abrilos en el editor para adaptarlos y compartirlos.`}
+        title="Biblioteca de ejemplos"
+        description={`${SNIPPETS.length} programas en Python listos para ejecutar. Probalos acá, copialos o abrilos en el editor para cambiarlos y compartirlos.`}
       />
 
       <div className="sticky top-16 z-30 -mx-4 space-y-3 bg-bg/85 px-4 py-3 backdrop-blur-md sm:-mx-6 sm:px-6">
@@ -75,7 +75,7 @@ export default function Codes() {
             aria-label="Buscar ejemplos"
             value={query}
             onChange={(e) => updateParam('q', e.target.value)}
-            placeholder="Buscar: debounce, fetch, diseño…"
+            placeholder="Buscar: primos, fechas, clases…"
             className="w-full bg-transparent text-sm outline-none placeholder:text-muted"
           />
           {query ? (
@@ -86,22 +86,22 @@ export default function Codes() {
             <Kbd>/</Kbd>
           )}
         </label>
-        <div className="flex gap-1.5 overflow-x-auto pb-1" role="tablist" aria-label="Filtrar por lenguaje">
-          {languageFilters.map((l) => (
+        <div className="flex gap-1.5 overflow-x-auto pb-1" role="tablist" aria-label="Filtrar por tema">
+          {topicFilters.map((l) => (
             <button
               key={l.value}
               role="tab"
-              aria-selected={language === l.value}
-              onClick={() => updateParam('lang', l.value)}
+              aria-selected={topic === l.value}
+              onClick={() => updateParam('tema', l.value)}
               className={cn(
                 'inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border px-3 text-sm transition-colors',
-                language === l.value
+                topic === l.value
                   ? 'border-fg bg-fg text-bg'
                   : 'border-line bg-surface text-muted hover:text-fg hover:border-line-strong'
               )}
             >
               <span>{l.label}</span>
-              <span className={cn('text-xs', language === l.value ? 'opacity-70' : 'text-muted')}>{l.count}</span>
+              <span className={cn('text-xs', topic === l.value ? 'opacity-70' : 'text-muted')}>{l.count}</span>
             </button>
           ))}
         </div>

@@ -1,7 +1,8 @@
 import { COURSES } from '../data/courses';
+import { GUIDE } from '../data/guide';
 
 /**
- * Achievements are derived from course progress (completed lessons and projects), so they sync
+ * Achievements are derived from course progress (lessons, projects and guide chapters read), so they sync
  * across devices together with it and need no storage of their own.
  */
 export interface Achievement {
@@ -15,6 +16,7 @@ export interface Achievement {
 
 const lessonsDone = (done: Set<string>) =>
   COURSES.reduce((n, c) => n + c.lessons.filter((l) => done.has(`${c.id}/${l.id}`)).length, 0);
+const chaptersRead = (done: Set<string>) => GUIDE.filter((c) => done.has(`guia/${c.id}`)).length;
 const totalLessons = COURSES.reduce((n, c) => n + c.lessons.length, 0);
 const projectsDone = (done: Set<string>) => COURSES.filter((c) => done.has(`${c.id}/proyecto`)).length;
 const courseDone = (done: Set<string>, id: string) => {
@@ -40,6 +42,20 @@ const COURSE_EMOJI: Record<string, string> = {
 };
 
 export const ACHIEVEMENTS: Achievement[] = [
+  {
+    id: 'primer-capitulo',
+    title: 'Lector curioso',
+    emoji: '📖',
+    description: 'Leé tu primer capítulo de la Guía de Python.',
+    progress: (d) => ({ value: Math.min(chaptersRead(d), 1), target: 1 }),
+  },
+  {
+    id: 'guia-completa',
+    title: 'Ratón de biblioteca',
+    emoji: '🦉',
+    description: `Leé los ${GUIDE.length} capítulos de la Guía de Python.`,
+    progress: (d) => ({ value: chaptersRead(d), target: GUIDE.length }),
+  },
   lessonGoal('primer-paso', 'Primer paso', '👣', 1),
   lessonGoal('cinco-lecciones', 'En marcha', '🔥', 5),
   lessonGoal('diez-lecciones', 'Constancia', '💪', 10),
