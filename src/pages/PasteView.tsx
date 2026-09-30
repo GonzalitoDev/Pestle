@@ -87,7 +87,7 @@ export default function PasteView() {
 
   const forkPaste = () => {
     if (!paste) return;
-    navigate('/', {
+    navigate('/nuevo', {
       state: { title: paste.title ? `${paste.title} (copia)` : undefined, content: paste.content, language: paste.language },
     });
   };
@@ -108,7 +108,7 @@ export default function PasteView() {
         title="No encontramos este código"
         description="Puede que haya vencido, que su autor lo haya borrado o que el enlace esté mal."
         action={
-          <Link to="/" className={buttonClass('primary')}>
+          <Link to="/nuevo" className={buttonClass('primary')}>
             Crear uno nuevo
           </Link>
         }
