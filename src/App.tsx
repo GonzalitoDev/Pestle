@@ -150,8 +150,12 @@ export default function App() {
               </div>
 
               <div className="flex items-center gap-1">
-                <ApkLink className="hidden sm:inline-flex h-9 items-center gap-2 rounded-lg border border-line bg-surface px-3 text-sm font-medium hover:border-line-strong hover:bg-surface-2 transition-colors mr-1">
-                  <Smartphone className="size-4 text-success" aria-hidden /> Bajá la app
+                <ApkLink
+                  title="Bajá la app para Android"
+                  className="hidden sm:inline-flex h-9 items-center rounded-lg px-2.5 text-success hover:bg-surface-2 transition-colors"
+                >
+                  <Smartphone className="size-[18px]" aria-hidden />
+                  <span className="sr-only">Bajá la app para Android</span>
                 </ApkLink>
                 <ThemeToggle />
                 <button
