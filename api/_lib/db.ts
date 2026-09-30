@@ -8,10 +8,24 @@
  *   SUPABASE_SERVICE_ROLE_KEY    Settings → API keys → service_role / secret
  * Without them this module does nothing. Failures are logged and never break the request.
  */
-const URL_BASE = (process.env.SUPABASE_URL ?? '').replace(/\/+$/, '');
-const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET_KEY ?? '';
+const clean = (v?: string) => (v ?? '').trim().replace(/^["']|["']$/g, '');
+// Accept the URL with or without a trailing "/rest/v1" or slash, as people often paste it.
+const URL_BASE = clean(process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL)
+  .replace(/\/+$/, '')
+  .replace(/\/rest\/v1$/, '');
+const KEY = clean(process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY);
 
 export const dbEnabled = Boolean(URL_BASE && KEY);
+
+/** Which pieces are missing, for /api/health (never the values). */
+export const dbConfig = { url: Boolean(URL_BASE), clave: Boolean(KEY), formatoClave: KEY.startsWith('sb_') ? 'nueva' : KEY ? 'jwt' : null };
+
+/**
+ * Old keys are JWTs ("eyJ…") and also go in Authorization. New secret keys ("sb_secret_…") are
+ * not JWTs and must only be sent in the apikey header.
+ */
+const authHeaders = (): Record<string, string> =>
+  KEY.startsWith('sb_') ? { apikey: KEY } : { apikey: KEY, authorization: `Bearer ${KEY}` };
 
 async function rest(path: string, init: RequestInit & { prefer?: string; timeout?: number }): Promise<boolean> {
   if (!dbEnabled) return false;
@@ -19,8 +33,7 @@ async function rest(path: string, init: RequestInit & { prefer?: string; timeout
     const res = await fetch(`${URL_BASE}/rest/v1/${path}`, {
       ...init,
       headers: {
-        apikey: KEY,
-        authorization: `Bearer ${KEY}`,
+        ...authHeaders(),
         'content-type': 'application/json',
         prefer: init.prefer ?? 'return=minimal',
       },
@@ -34,10 +47,10 @@ async function rest(path: string, init: RequestInit & { prefer?: string; timeout
   }
 }
 
-/** Insert or update rows (by the table's primary key / given columns). */
 // Big batches (the backup copy) get more time than a single row.
 const timeoutFor = (rows: object | object[]) => (Array.isArray(rows) && rows.length > 20 ? 25000 : 4000);
 
+/** Insert or update rows (by the table's primary key / given columns). */
 export const upsert = (table: string, rows: object | object[], onConflict: string) =>
   rest(`${table}?on_conflict=${onConflict}`, {
     method: 'POST',
@@ -66,6 +79,43 @@ const iso = (t?: number | null) => (t ? new Date(t).toISOString() : null);
 /** Makes sure the (anonymous) user row exists before anything that references it. */
 export const touchUser = (ownerHash: string) =>
   upsert('pestle_usuarios', { owner_hash: ownerHash, actualizado: new Date().toISOString() }, 'owner_hash');
+
+/** The public key can read nothing and write nothing here (RLS): it must be the secret one. */
+function isPublicKey() {
+  if (KEY.startsWith('sb_publishable_')) return true;
+  if (!KEY.startsWith('eyJ')) return false;
+  try {
+    return JSON.parse(Buffer.from(KEY.split('.')[1], 'base64url').toString()).role === 'anon';
+  } catch {
+    return false;
+  }
+}
+
+/** Checks that Supabase answers and the Pestle tables exist, for /api/health. */
+export async function checkDb(): Promise<{ ok: boolean; detalle: string }> {
+  if (!URL_BASE) return { ok: false, detalle: 'Falta la variable SUPABASE_URL en Vercel (y después hay que hacer Redeploy).' };
+  if (!KEY) return { ok: false, detalle: 'Falta la variable SUPABASE_SERVICE_ROLE_KEY en Vercel (y después hay que hacer Redeploy).' };
+  if (isPublicKey())
+    return {
+      ok: false,
+      detalle:
+        'SUPABASE_SERVICE_ROLE_KEY tiene la clave pública (anon / publishable). Tiene que ser la secreta: service_role o sb_secret_…',
+    };
+  try {
+    const res = await fetch(`${URL_BASE}/rest/v1/pestle_resumen?select=*`, {
+      headers: authHeaders(),
+      signal: AbortSignal.timeout(5000),
+    });
+    if (res.ok) return { ok: true, detalle: 'Conectado: los datos se están guardando en Supabase.' };
+    if (res.status === 401 || res.status === 403)
+      return { ok: false, detalle: `Supabase rechazó la clave (${res.status}). Revisá que SUPABASE_SERVICE_ROLE_KEY sea la clave secreta (service_role) de este proyecto.` };
+    if (res.status === 404)
+      return { ok: false, detalle: 'Supabase responde, pero no encuentra las tablas pestle_*. Revisá que SUPABASE_URL sea la del proyecto correcto.' };
+    return { ok: false, detalle: `Supabase respondió con un error ${res.status}.` };
+  } catch (err) {
+    return { ok: false, detalle: `No se pudo conectar con Supabase: ${err instanceof Error ? err.message : err}. Revisá SUPABASE_URL.` };
+  }
+}
 
 export const db = {
   async progress(ownerHash: string, p: { done: string[]; code: Record<string, { v: string; t: number }>; last?: unknown }) {

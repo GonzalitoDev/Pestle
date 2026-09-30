@@ -79,6 +79,15 @@ export function Privacy() {
         </p>
       </section>
       <section>
+        <h2>Pestle IA</h2>
+        <p>
+          Las preguntas que le hacés a Pestle IA, junto con la página en la que estás y, si estás en un ejercicio, el código
+          que escribiste, se envían a Anthropic (la empresa que hace Claude, el modelo que usa Pestle IA) para generar la
+          respuesta. Pestle no guarda esas conversaciones: quedan solo en tu navegador hasta que cerrás la pestaña. No
+          escribas datos personales en el chat.
+        </p>
+      </section>
+      <section>
         <h2>Protección contra abusos</h2>
         <p>
           Para frenar el spam, la API cuenta los pedidos de cada dirección IP. La IP nunca se guarda tal cual: solo un hash,
