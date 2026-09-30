@@ -33,6 +33,10 @@ export function Privacy() {
           De cada código publicado: el título, el contenido, la visibilidad, la fecha de creación y el
           vencimiento, si elegiste uno. Nada de emails, cuentas, cookies de seguimiento ni estadísticas.
         </p>
+        <p className="mt-2">
+          Todo se guarda en dos lugares del servidor: una base rápida (Upstash Redis) para que la página ande ágil, y una
+          copia permanente en una base de datos (Supabase), para no perder nada y poder hacer respaldos.
+        </p>
       </section>
       <section>
         <h2>Progreso de los cursos</h2>

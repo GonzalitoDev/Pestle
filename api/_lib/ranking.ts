@@ -1,4 +1,5 @@
 import { COURSES } from '../../src/data/courses.js';
+import { db } from './db.js';
 import { redis } from './store.js';
 
 export const RANKING_KEY = 'ranking:puntos';
@@ -20,5 +21,7 @@ export function scoreOf(done: string[]) {
 export async function updateScore(ownerHash: string, done: string[]) {
   if (!redis) return;
   if ((await redis.zscore(RANKING_KEY, ownerHash)) === null) return;
-  await redis.zadd(RANKING_KEY, { score: scoreOf(done), member: ownerHash });
+  const points = scoreOf(done);
+  await redis.zadd(RANKING_KEY, { score: points, member: ownerHash });
+  await db.points(ownerHash, points);
 }

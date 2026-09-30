@@ -1,4 +1,5 @@
 import { json, preflight, rateLimit, redis, safe, storageUnavailable } from './_lib/store.js';
+import { db } from './_lib/db.js';
 
 /**
  * Suggestions box. POST { texto, contacto? } stores the message in Redis (list "sugerencias",
@@ -29,6 +30,7 @@ export const POST = safe(async (request) => {
   const pagina = typeof body.pagina === 'string' ? body.pagina.slice(0, 200) : '';
   await redis.lpush(SUGGESTIONS_KEY, JSON.stringify({ texto, contacto, pagina, fecha: new Date().toISOString() }));
   await redis.ltrim(SUGGESTIONS_KEY, 0, 999);
+  await db.suggestion({ texto, contacto, pagina });
   return json({ ok: true }, 201);
 });
 

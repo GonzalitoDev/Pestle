@@ -1,5 +1,6 @@
 import { COURSES } from '../src/data/courses.js';
 import { hmac, json, ownerHashFrom, preflight, progressKey, rateLimit, redis, safe, storageUnavailable } from './_lib/store.js';
+import { db } from './_lib/db.js';
 
 /**
  * Course certificates. The server issues one only after checking the owner's stored progress
@@ -146,6 +147,7 @@ export const POST = safe(async (request) => {
     return winner ? json(await toPublic(winner, ownerHash)) : json({ error: 'Probá de nuevo en un momento' }, 409);
   }
   await redis.set(certKey(cert.id), cert, { nx: true });
+  await db.certificate(cert);
   return json(await toPublic(cert, ownerHash), 201);
 });
 

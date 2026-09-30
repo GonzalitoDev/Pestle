@@ -1,4 +1,5 @@
 import { json, ownerHashFrom, preflight, progressKey, rateLimit, redis, safe, storageUnavailable } from './_lib/store.js';
+import { db } from './_lib/db.js';
 import { NAMES_KEY, RANKING_KEY, scoreOf } from './_lib/ranking.js';
 
 /**
@@ -72,6 +73,7 @@ export const POST = safe(async (request) => {
   const points = scoreOf(Array.isArray(progress?.done) ? progress.done : []);
   await redis.hset(NAMES_KEY, { [ownerHash]: nick });
   await redis.zadd(RANKING_KEY, { score: points, member: ownerHash });
+  await db.ranking(ownerHash, nick, points);
   return json({ nick, points });
 });
 
@@ -83,6 +85,7 @@ export const DELETE = safe(async (request) => {
   const ownerHash = await ownerHashFrom(request);
   if (!ownerHash) return json({ error: 'Falta el encabezado x-owner-id' }, 400);
   await redis.zrem(RANKING_KEY, ownerHash);
+  await db.ranking(ownerHash, null);
   await redis.hdel(NAMES_KEY, ownerHash);
   return json({ ok: true });
 });
