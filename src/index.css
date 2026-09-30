@@ -163,3 +163,35 @@ pre[class*='language-'] {
   margin: 0 !important;
   border-radius: 0 !important;
 }
+
+/* Intro splash (see components/Intro.tsx). */
+@keyframes intro-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes intro-blink {
+  50% {
+    opacity: 0;
+  }
+}
+@keyframes intro-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+.intro-pop {
+  animation: intro-pop 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.intro-cursor {
+  animation: intro-blink 0.9s steps(1) infinite;
+}
+.intro-out {
+  animation: intro-out 0.4s ease-in forwards;
+}
