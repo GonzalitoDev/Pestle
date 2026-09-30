@@ -18,6 +18,7 @@ import Inicio from './pages/Inicio';
 import { Spinner } from './components/ui';
 
 // Pages other than the editor load on demand, keeping the first download small.
+const Beta = lazy(() => import('./pages/Beta'));
 const Home = lazy(() => import('./pages/Home'));
 const PasteView = lazy(() => import('./pages/PasteView'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -132,6 +133,13 @@ export default function App() {
                   </span>
                   <span className="text-lg">Pestle</span>
                 </Link>
+                <Link
+                  to="/beta"
+                  title="Pestle está en beta: mandanos tus sugerencias"
+                  className="-ml-4 rounded-md bg-warn-soft px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-warn hover:opacity-80"
+                >
+                  Beta
+                </Link>
                 <div className="hidden xl:flex items-center gap-1">
                   {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
                     <NavLink key={to} to={to} end={end} className={desktopLink}>
@@ -192,6 +200,7 @@ export default function App() {
             <Routes>
               <Route path="/" element={<Inicio />} />
               <Route path="/nuevo" element={<Home />} />
+              <Route path="/beta" element={<Beta />} />
               <Route path="/paste/:id" element={<PasteView />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/codes" element={<Codes />} />
@@ -222,6 +231,7 @@ export default function App() {
               </p>
               <div className="flex flex-wrap justify-center gap-5">
                 <Link to="/privacy" className="hover:text-fg">Privacidad</Link>
+                <Link to="/beta" className="hover:text-fg">Sugerencias</Link>
                 <Link to="/terms" className="hover:text-fg">Términos</Link>
                 <Link to="/api-docs" className="hover:text-fg">API</Link>
               </div>

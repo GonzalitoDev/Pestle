@@ -68,6 +68,13 @@ export function Privacy() {
         </p>
       </section>
       <section>
+        <h2>Sugerencias</h2>
+        <p>
+          Si nos mandás una sugerencia, guardamos el texto, el contacto (solo si lo dejaste) y la fecha. No son públicas: solo
+          las lee quien administra el sitio.
+        </p>
+      </section>
+      <section>
         <h2>Protección contra abusos</h2>
         <p>
           Para frenar el spam, la API cuenta los pedidos de cada dirección IP. La IP nunca se guarda tal cual: solo un hash,
