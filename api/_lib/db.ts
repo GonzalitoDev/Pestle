@@ -13,8 +13,8 @@ const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SUPABASE_SECRET
 
 export const dbEnabled = Boolean(URL_BASE && KEY);
 
-async function rest(path: string, init: RequestInit & { prefer?: string }) {
-  if (!dbEnabled) return;
+async function rest(path: string, init: RequestInit & { prefer?: string; timeout?: number }): Promise<boolean> {
+  if (!dbEnabled) return false;
   try {
     const res = await fetch(`${URL_BASE}/rest/v1/${path}`, {
       ...init,
@@ -24,20 +24,26 @@ async function rest(path: string, init: RequestInit & { prefer?: string }) {
         'content-type': 'application/json',
         prefer: init.prefer ?? 'return=minimal',
       },
-      signal: AbortSignal.timeout(4000),
+      signal: AbortSignal.timeout(init.timeout ?? 4000),
     });
     if (!res.ok) console.error('supabase', path, res.status, (await res.text()).slice(0, 300));
+    return res.ok;
   } catch (err) {
     console.error('supabase', path, err instanceof Error ? err.message : err);
+    return false;
   }
 }
 
 /** Insert or update rows (by the table's primary key / given columns). */
+// Big batches (the backup copy) get more time than a single row.
+const timeoutFor = (rows: object | object[]) => (Array.isArray(rows) && rows.length > 20 ? 25000 : 4000);
+
 export const upsert = (table: string, rows: object | object[], onConflict: string) =>
   rest(`${table}?on_conflict=${onConflict}`, {
     method: 'POST',
     body: JSON.stringify(rows),
     prefer: 'resolution=merge-duplicates,return=minimal',
+    timeout: timeoutFor(rows),
   });
 
 /** Insert only; rows whose key already exists are left as they are. */
@@ -46,6 +52,7 @@ export const insertIgnore = (table: string, rows: object | object[], onConflict:
     method: 'POST',
     body: JSON.stringify(rows),
     prefer: 'resolution=ignore-duplicates,return=minimal',
+    timeout: timeoutFor(rows),
   });
 
 export const insert = (table: string, rows: object | object[]) =>
