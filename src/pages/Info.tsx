@@ -33,6 +33,10 @@ export function Privacy() {
           De cada código publicado: el título, el contenido, la visibilidad, la fecha de creación y el
           vencimiento, si elegiste uno. Nada de emails, cuentas, cookies de seguimiento ni estadísticas.
         </p>
+        <p className="mt-2">
+          Todo se guarda en dos lugares del servidor: una base rápida (Upstash Redis) para que la página ande ágil, y una
+          copia permanente en una base de datos (Supabase), para no perder nada y poder hacer respaldos.
+        </p>
       </section>
       <section>
         <h2>Progreso de los cursos</h2>
@@ -65,6 +69,13 @@ export function Privacy() {
         <p>
           Aparecer en el ranking es opcional. Si te sumás, se muestran públicamente el apodo que elijas y tus puntos. Podés
           cambiar el apodo o salir del ranking cuando quieras, y en ese caso se borran los dos.
+        </p>
+      </section>
+      <section>
+        <h2>Sugerencias</h2>
+        <p>
+          Si nos mandás una sugerencia, guardamos el texto, el contacto (solo si lo dejaste) y la fecha. No son públicas: solo
+          las lee quien administra el sitio.
         </p>
       </section>
       <section>

@@ -13,6 +13,7 @@ import {
   storageUnavailable,
   toPublic,
 } from '../_lib/store.js';
+import { db } from '../_lib/db.js';
 
 function idFrom(request: Request) {
   const id = new URL(request.url).pathname.split('/').pop() ?? '';
@@ -54,6 +55,7 @@ export const DELETE = safe(async (request) => {
   tx.zrem(ownerKey(ownerHash), id);
   tx.zrem(PUBLIC_FEED_KEY, id);
   await tx.exec();
+  await db.pasteDeleted(id);
   return new Response(null, { status: 204, headers: API_HEADERS });
 });
 

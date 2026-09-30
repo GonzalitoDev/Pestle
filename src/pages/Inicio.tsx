@@ -99,6 +99,18 @@ export default function Inicio() {
         </p>
       </section>
 
+      <section className="space-y-2 rounded-xl border border-warn/30 bg-warn-soft p-5">
+        <h2 className="font-semibold">Está en beta</h2>
+        <p className="text-sm leading-relaxed">
+          Pestle todavía se está armando, así que puede haber errores o cosas a medio hacer. Aceptamos cualquier sugerencia:
+          si algo no anda o se te ocurre qué agregar,{' '}
+          <Link to="/beta" className="font-medium underline underline-offset-2">
+            contanos acá
+          </Link>
+          .
+        </p>
+      </section>
+
       <section className="space-y-3 border-t border-line pt-8 text-sm leading-relaxed text-muted">
         <p>
           El progreso se guarda solo, en este navegador y en el servidor. Para seguir en otro dispositivo hay un código en la

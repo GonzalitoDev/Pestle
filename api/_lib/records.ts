@@ -1,6 +1,7 @@
 import { COURSES } from '../../src/data/courses.js';
 import { ACHIEVEMENTS, isUnlocked } from '../../src/lib/achievements.js';
 import { NAMES_KEY } from './ranking.js';
+import { db } from './db.js';
 import { redis } from './store.js';
 
 /**
@@ -50,6 +51,7 @@ export async function recordProgress(ownerHash: string, doneList: string[]) {
     await redis.lpush(RECENT_KEY, JSON.stringify({ curso: id, usuario: ownerHash, fecha: now }));
   }
   if (newCourses.length) await redis.ltrim(RECENT_KEY, 0, RECENT_SIZE - 1);
+  await db.records(ownerHash, record.logros, record.cursos);
   return record;
 }
 

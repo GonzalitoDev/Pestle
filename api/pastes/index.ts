@@ -17,6 +17,7 @@ import {
   storageUnavailable,
   toPublic,
 } from '../_lib/store.js';
+import { db } from '../_lib/db.js';
 
 const PREVIEW_CHARS = 600;
 
@@ -113,6 +114,7 @@ export const POST = safe(async (request) => {
     tx.zremrangebyrank(PUBLIC_FEED_KEY, 0, -(PUBLIC_FEED_SIZE + 1));
   }
   await tx.exec();
+  await db.paste(paste);
 
   return json(toPublic(paste, ownerHash), 201);
 });
