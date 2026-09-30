@@ -1,14 +1,36 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Lock, Trophy } from 'lucide-react';
+import { Lock, Trophy, Users } from 'lucide-react';
 import { ACHIEVEMENTS } from '../lib/achievements';
-import { startProgressSync, useProgress } from '../lib/courseProgress';
+import { startProgressSync, syncNow, useProgress } from '../lib/courseProgress';
+import { MyRecord, PublicStats, getMyRecord, getStats } from '../lib/stats';
+import { resolveBackend } from '../lib/pasteService';
 import { PageHeader, buttonClass } from '../components/ui';
 import { cn } from '../lib/utils';
 
 export default function Achievements() {
-  const done = new Set(useProgress().done);
+  const progress = useProgress();
+  const done = new Set(progress.done);
+  const [mine, setMine] = useState<MyRecord | null>(null);
+  const [stats, setStats] = useState<PublicStats | null>(null);
   useEffect(() => startProgressSync(), []);
+
+  // The server keeps the permanent record (dates and totals); reload it when progress changes.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if ((await resolveBackend()).isMock) return;
+      await syncNow().catch(() => {});
+      const [m, st] = await Promise.all([getMyRecord().catch(() => null), getStats().catch(() => null)]);
+      if (!cancelled) {
+        setMine(m);
+        setStats(st);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [progress.done.length]);
 
   const items = ACHIEVEMENTS.map((a) => ({ a, ...a.progress(done) }));
   const unlocked = items.filter((i) => i.value >= i.target).length;
@@ -66,7 +88,11 @@ export default function Achievements() {
                 </p>
                 <p className="text-sm text-muted">{a.description}</p>
                 {got ? (
-                  <p className="text-xs font-medium text-warn">¡Desbloqueado!</p>
+                  <p className="text-xs font-medium text-warn">
+                    {mine?.logros[a.id]
+                      ? `Desbloqueado el ${new Date(mine.logros[a.id]).toLocaleDateString('es-AR')}`
+                      : '¡Desbloqueado!'}
+                  </p>
                 ) : (
                   <div className="flex items-center gap-2">
                     <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-2">
@@ -76,6 +102,13 @@ export default function Achievements() {
                       {value}/{target}
                     </span>
                   </div>
+                )}
+                {stats && stats.usuarios > 0 && (
+                  <p className="flex items-center gap-1 text-xs text-muted">
+                    <Users className="size-3" aria-hidden />
+                    {(stats.porLogro[a.id] ?? 0) === 1 ? '1 persona lo tiene' : `${stats.porLogro[a.id] ?? 0} personas lo tienen`}
+                    {' '}({Math.round(((stats.porLogro[a.id] ?? 0) / stats.usuarios) * 100)}%)
+                  </p>
                 )}
               </div>
             </li>

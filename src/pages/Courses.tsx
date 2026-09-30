@@ -1,10 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight, Award, BookOpen, CheckCircle2, GraduationCap, History, Lock, Play, Sparkles, Trophy, BookOpenText } from 'lucide-react';
 import { COURSES } from '../data/courses';
 import { startProgressSync, useProgress } from '../lib/courseProgress';
 import { Badge, Card, PageHeader, buttonClass } from '../components/ui';
 import ProgressSync from '../components/ProgressSync';
+import { PublicStats, getStats } from '../lib/stats';
 
 /** Human title for a saved "last visited" path like /cursos/<course>/<lesson|proyecto>. */
 function describe(path: string) {
@@ -21,7 +22,11 @@ export default function Courses() {
   const done = new Set(progress.done);
   const resume = progress.last ? describe(progress.last.path) : null;
 
+  const [stats, setStats] = useState<PublicStats | null>(null);
   useEffect(() => startProgressSync(), []);
+  useEffect(() => {
+    getStats().then(setStats).catch(() => {});
+  }, []);
 
   return (
     <div className="space-y-8 animate-fade-up">
@@ -76,6 +81,11 @@ export default function Courses() {
               </div>
               <h2 className="mt-4 text-xl font-semibold tracking-tight">{course.title}</h2>
               <p className="mt-1 flex-1 text-sm text-muted">{course.description}</p>
+              {!!stats?.porCurso[course.id] && (
+                <p className="mt-2 text-xs text-muted">
+                  🎓 {stats.porCurso[course.id] === 1 ? '1 persona lo completó' : `${stats.porCurso[course.id]} personas lo completaron`}
+                </p>
+              )}
 
               <div className="mt-5 space-y-2">
                 <div className="flex items-center justify-between text-xs text-muted">

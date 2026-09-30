@@ -1,18 +1,20 @@
 import { FormEvent, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AlertTriangle, CloudOff, Medal, Pencil, UserMinus } from 'lucide-react';
+import { AlertTriangle, CloudOff, GraduationCap, Medal, Pencil, UserMinus } from 'lucide-react';
 import { RankingData, getRanking, joinRanking, leaveRanking } from '../lib/ranking';
 import { resolveBackend } from '../lib/pasteService';
 import { startProgressSync, syncNow } from '../lib/courseProgress';
 import { Button, Card, EmptyState, PageHeader, Spinner, buttonClass } from '../components/ui';
 import { useToast } from '../components/Toast';
-import { cn } from '../lib/utils';
+import { cn, timeAgo } from '../lib/utils';
+import { PublicStats, getStats } from '../lib/stats';
 
 const MEDALS = ['🥇', '🥈', '🥉'];
 
 export default function Ranking() {
   const toast = useToast();
   const [data, setData] = useState<RankingData | null>(null);
+  const [stats, setStats] = useState<PublicStats | null>(null);
   const [state, setState] = useState<'loading' | 'offline' | 'error' | 'ready'>('loading');
   const [nick, setNick] = useState('');
   const [editing, setEditing] = useState(false);
@@ -21,7 +23,8 @@ export default function Ranking() {
 
   const load = async () => {
     try {
-      const d = await getRanking();
+      const [d, st] = await Promise.all([getRanking(), getStats().catch(() => null)]);
+      setStats(st);
       setData(d);
       setNick(d.me?.nick ?? '');
       setState('ready');
@@ -163,6 +166,35 @@ export default function Ranking() {
             ))}
           </ol>
         </Card>
+      )}
+
+      {stats && (
+        <section className="space-y-3">
+          <div className="flex flex-wrap items-end justify-between gap-2">
+            <h2 className="flex items-center gap-2 text-lg font-semibold">
+              <GraduationCap className="size-5 text-accent" aria-hidden /> Últimos que completaron un curso
+            </h2>
+            <p className="text-sm text-muted">{stats.usuarios} personas aprendiendo en Pestle</p>
+          </div>
+          {stats.recientes.length === 0 ? (
+            <p className="rounded-xl border border-dashed border-line-strong px-4 py-6 text-center text-sm text-muted">
+              Todavía nadie completó un curso. ¡Podés ser la primera persona!
+            </p>
+          ) : (
+            <Card className="divide-y divide-line overflow-hidden">
+              {stats.recientes.map((r, i) => (
+                <div key={i} className="flex items-center gap-3 px-4 py-3 text-sm">
+                  <span aria-hidden>🎓</span>
+                  <span className="min-w-0 flex-1 truncate">
+                    <strong className="font-medium">{r.apodo}</strong> completó <span className="text-accent">{r.curso}</span>
+                  </span>
+                  <span className="shrink-0 text-xs text-muted">{timeAgo(r.fecha)}</span>
+                </div>
+              ))}
+            </Card>
+          )}
+          <p className="text-xs text-muted">Solo se muestra el apodo de quienes se sumaron al ranking; el resto aparece como Anónimo.</p>
+        </section>
       )}
     </div>
   );

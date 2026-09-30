@@ -1,5 +1,5 @@
-import { COURSES } from '../data/courses';
-import { GUIDE } from '../data/guide';
+import { COURSES } from '../data/courses.js';
+import { GUIDE } from '../data/guide.js';
 
 /**
  * Achievements are derived from course progress (lessons, projects and guide chapters read), so they sync
