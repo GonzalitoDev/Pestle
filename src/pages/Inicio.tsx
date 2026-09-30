@@ -27,6 +27,11 @@ const SECCIONES = [
     texto: `${SNIPPETS.length} programas cortos ya hechos: para mirar cómo están escritos, ejecutarlos y cambiarles cosas.`,
   },
   {
+    to: '/cursos',
+    nombre: 'Pestle IA',
+    texto: 'El botón de abajo a la derecha. Le preguntás tus dudas de Python y te contesta; si estás en un ejercicio, sabe cuál es y te ayuda con pistas.',
+  },
+  {
     to: '/explore',
     nombre: 'Explorar',
     texto: 'Lo último que publicó el resto de la gente.',
@@ -67,7 +72,7 @@ export default function Inicio() {
         <h2 className="text-xl font-semibold">Qué hay en el sitio</h2>
         <ol className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
           {SECCIONES.map((s, i) => (
-            <li key={s.to}>
+            <li key={s.nombre}>
               <Link to={s.to} className="group flex gap-4 px-5 py-4 hover:bg-surface-2">
                 <span className="w-5 shrink-0 pt-0.5 text-sm tabular-nums text-muted">{i + 1}.</span>
                 <span className="min-w-0 flex-1">

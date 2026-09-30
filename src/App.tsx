@@ -18,6 +18,7 @@ import Inicio from './pages/Inicio';
 import { Spinner } from './components/ui';
 
 // Pages other than the editor load on demand, keeping the first download small.
+const PestleIA = lazy(() => import('./components/PestleIA'));
 const Beta = lazy(() => import('./pages/Beta'));
 const Home = lazy(() => import('./pages/Home'));
 const PasteView = lazy(() => import('./pages/PasteView'));
@@ -110,6 +111,9 @@ export default function App() {
       <ToastProvider>
         <Intro />
         <AchievementWatcher />
+        <Suspense fallback={null}>
+          <PestleIA />
+        </Suspense>
         <RouteEffects onNavigate={() => setMenuOpen(false)} />
         <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] rounded-lg bg-surface px-4 py-2 shadow-card">
           Saltar al contenido
