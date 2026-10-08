@@ -48,8 +48,16 @@ const SECCIONES = [
 /** Home: what the site is for and where everything is. */
 export default function Inicio() {
   const [stats, setStats] = useState<PublicStats | null>(null);
+  // Live numbers: refresh every 15 s while the tab is visible, and right away when it comes back.
   useEffect(() => {
-    getStats().then(setStats).catch(() => {});
+    const load = () => document.visibilityState === 'visible' && getStats().then(setStats).catch(() => {});
+    load();
+    const timer = setInterval(load, 15000);
+    document.addEventListener('visibilitychange', load);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', load);
+    };
   }, []);
   const sum = (o: Record<string, number>) => Object.values(o).reduce((a, b) => a + b, 0);
   return (
@@ -112,17 +120,28 @@ export default function Inicio() {
       </section>
 
       {stats && stats.usuarios > 0 && (
-        <section className="grid grid-cols-3 gap-3 text-center">
+        <section className="space-y-2">
+          <p className="flex items-center gap-2 text-xs text-muted">
+            <span className="relative flex size-2">
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-success opacity-60" />
+              <span className="relative inline-flex size-2 rounded-full bg-success" />
+            </span>
+            En vivo
+          </p>
+          <div className="grid grid-cols-3 gap-3 text-center">
           {[
             [stats.usuarios, stats.usuarios === 1 ? 'persona aprendiendo' : 'personas aprendiendo'],
             [sum(stats.porCurso), sum(stats.porCurso) === 1 ? 'curso completado' : 'cursos completados'],
             [sum(stats.porLogro), sum(stats.porLogro) === 1 ? 'logro desbloqueado' : 'logros desbloqueados'],
           ].map(([n, label]) => (
             <div key={label} className="rounded-xl border border-line bg-surface px-2 py-4">
-              <p className="text-2xl font-semibold tabular-nums sm:text-3xl">{Number(n).toLocaleString('es-AR')}</p>
+              <p key={n} className="animate-fade-up text-2xl font-semibold tabular-nums sm:text-3xl">
+                {Number(n).toLocaleString('es-AR')}
+              </p>
               <p className="mt-1 text-xs text-muted sm:text-sm">{label}</p>
             </div>
           ))}
+          </div>
         </section>
       )}
 
