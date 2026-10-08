@@ -1,9 +1,11 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { COURSES } from '../data/courses';
 import { GUIDE } from '../data/guide';
 import { SNIPPETS } from '../data/snippets';
 import { buttonClass } from '../components/ui';
+import { PublicStats, getStats } from '../lib/stats';
 
 const SECCIONES = [
   {
@@ -27,6 +29,11 @@ const SECCIONES = [
     texto: `${SNIPPETS.length} programas cortos ya hechos: para mirar cómo están escritos, ejecutarlos y cambiarles cosas.`,
   },
   {
+    to: '/cursos',
+    nombre: 'Pestle IA',
+    texto: 'El botón de abajo a la derecha. Le preguntás tus dudas de Python y te contesta; si estás en un ejercicio, sabe cuál es y te ayuda con pistas.',
+  },
+  {
     to: '/explore',
     nombre: 'Explorar',
     texto: 'Lo último que publicó el resto de la gente.',
@@ -40,6 +47,11 @@ const SECCIONES = [
 
 /** Home: what the site is for and where everything is. */
 export default function Inicio() {
+  const [stats, setStats] = useState<PublicStats | null>(null);
+  useEffect(() => {
+    getStats().then(setStats).catch(() => {});
+  }, []);
+  const sum = (o: Record<string, number>) => Object.values(o).reduce((a, b) => a + b, 0);
   return (
     <div className="mx-auto max-w-3xl space-y-12 animate-fade-up">
       <section className="space-y-4 pt-4">
@@ -67,7 +79,7 @@ export default function Inicio() {
         <h2 className="text-xl font-semibold">Qué hay en el sitio</h2>
         <ol className="divide-y divide-line overflow-hidden rounded-xl border border-line bg-surface">
           {SECCIONES.map((s, i) => (
-            <li key={s.to}>
+            <li key={s.nombre}>
               <Link to={s.to} className="group flex gap-4 px-5 py-4 hover:bg-surface-2">
                 <span className="w-5 shrink-0 pt-0.5 text-sm tabular-nums text-muted">{i + 1}.</span>
                 <span className="min-w-0 flex-1">
@@ -98,6 +110,21 @@ export default function Inicio() {
           más avanzados o abrí el editor y probá lo que quieras.
         </p>
       </section>
+
+      {stats && stats.usuarios > 0 && (
+        <section className="grid grid-cols-3 gap-3 text-center">
+          {[
+            [stats.usuarios, stats.usuarios === 1 ? 'persona aprendiendo' : 'personas aprendiendo'],
+            [sum(stats.porCurso), sum(stats.porCurso) === 1 ? 'curso completado' : 'cursos completados'],
+            [sum(stats.porLogro), sum(stats.porLogro) === 1 ? 'logro desbloqueado' : 'logros desbloqueados'],
+          ].map(([n, label]) => (
+            <div key={label} className="rounded-xl border border-line bg-surface px-2 py-4">
+              <p className="text-2xl font-semibold tabular-nums sm:text-3xl">{Number(n).toLocaleString('es-AR')}</p>
+              <p className="mt-1 text-xs text-muted sm:text-sm">{label}</p>
+            </div>
+          ))}
+        </section>
+      )}
 
       <section className="space-y-2 rounded-xl border border-warn/30 bg-warn-soft p-5">
         <h2 className="font-semibold">Está en beta</h2>
